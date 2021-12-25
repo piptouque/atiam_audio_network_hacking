@@ -1,16 +1,30 @@
 {
-    "version": 2,
+    "version": "0.2.0",
     "name": "Mnist_Vae",
     "n_gpu": 1,
 
     "arch": {
-            "type": "MnistVae",
+        "handle": "obj",
+        "type": "MnistVae",
         "args": {
             "image_dim": [1, 28, 28],
-            "latent_size": 2
+            "latent_size": 2,
+            "e_sampler_fac": {
+                "handle": "ftn",
+                "type": "GaussianRandomSampler",
+                "args": {
+                }
+            },
+            "d_sampler_fac": {
+                "handle": "ftn",
+                "type": "BernoulliRandomSampler",
+                "args": {
+                }
+            }
         }
     },
     "data_loader": {
+        "handle": "obj",
         "type": "UnsupervisedMnistDataLoader",
         "args":{
             "data_dir": "data/",
@@ -21,6 +35,7 @@
         }
     },
     "optimizer": {
+        "handle": "obj",
         "type": "Adam",
         "args":{
             "lr": 0.001,
@@ -32,6 +47,7 @@
     "metrics": [
     ],
     "lr_scheduler": {
+        "handle": "obj",
         "type": "StepLR",
         "args": {
             "step_size": 50,
@@ -41,7 +57,7 @@
     "trainer": {
         "epochs": 100,
 
-        "save_dir": "../saved_models/",
+        "save_dir": "saved_models/",
         "save_period": 1,
         "verbosity": 2,
         

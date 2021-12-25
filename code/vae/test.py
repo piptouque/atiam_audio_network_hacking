@@ -22,12 +22,12 @@ def main(config):
     )
 
     # build model architecture
-    model = config.init_obj('arch', module_arch)
+    model = config.init_handle('arch', module_arch)
     logger.info(model)
 
     # get function handles of loss and metrics
     loss_fn = getattr(module_loss, config['loss'])
-    metric_fns = [getattr(module_metric, met) for met in config['metrics']]
+    metric_fns = [config.init_handle(['metrics', i], module_metric) for i in range(len(config['metrics']))]
 
     logger.info('Loading checkpoint: {} ...'.format(config.resume))
     checkpoint = torch.load(config.resume)

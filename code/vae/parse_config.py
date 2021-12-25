@@ -77,8 +77,44 @@ class ConfigParser:
         # parse custom cli options into dictionary
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
         return cls(config, resume, modification)
-
-    def init_obj(self, path: Union[str, List[Union[str, int]]], module, *args, **kwargs):
+    
+    def init_handle(self, path: Union[str, List[Union[str, int]]], module, *args, **kwargs):
+        """
+        Selects `_init_obj` or `_init_ftn` as appropriate.
+        Also checks under specified `path` list of sub-keys.
+        Does not recursively sets args and kwargs.
+        Args:
+            path (Union[str, List[Union[str, int]]]): [description]
+            module ([type]): [description]
+        """
+        if isinstance(path, List):
+            root = self[path[0]]
+            for i in range(1, len(path)):
+                root = root[path[i]]
+        else:
+            root = self[path]
+            path = [path]
+        
+        module_args = dict(root['args'])
+        assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
+        module_args.update(kwargs)
+        # force rec for now
+        rec = True
+        if rec:
+            for k,v in module_args.items():
+                if isinstance(v, dict) and 'args' in v:
+                    # recursively init the arg
+                    module_args[k] = self.init_handle([*path, 'args', k], module)
+        module_name = root['type']
+        module_handle = root['handle']
+        if module_handle == 'obj':
+            return getattr(module, module_name)(*args, **module_args)
+        elif module_handle == 'ftn':
+            return partial(getattr(module, module_name), *args, **module_args)
+        else:
+            raise AttributeError(f"{module_handle} handle not recognised!")
+            
+    def _init_obj(self, root: object, module, rec: bool, *args, **kwargs):
         """
         Finds a function handle with the name given as 'type' in config, and returns the
         instance initialized with corresponding arguments given.
@@ -87,19 +123,13 @@ class ConfigParser:
         is equivalent to
         `object = module.name(a, b=1)`
         """
-        if isinstance(path, List):
-            root = self[path[0]]
-            for i in range(1, len(path)):
-                root = root[path[i]]
-        else:
-            root = self[path]
         module_name = root['type']
         module_args = dict(root['args'])
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
         module_args.update(kwargs)
         return getattr(module, module_name)(*args, **module_args)
 
-    def init_ftn(self, name, module, *args, **kwargs):
+    def _init_ftn(self, root: object, module, rec: bool, *args, **kwargs):
         """
         Finds a function handle with the name given as 'type' in config, and returns the
         function with given arguments fixed with functools.partial.
@@ -108,8 +138,8 @@ class ConfigParser:
         is equivalent to
         `function = lambda *args, **kwargs: module.name(a, *args, b=1, **kwargs)`.
         """
-        module_name = self[name]['type']
-        module_args = dict(self[name]['args'])
+        module_name = root['type']
+        module_args = dict(root['args'])
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
         module_args.update(kwargs)
         return partial(getattr(module, module_name), *args, **module_args)

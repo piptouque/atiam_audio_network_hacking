@@ -6,7 +6,8 @@ from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
 
-from typing import Tuple
+from typing import Tuple, Union, Callable, Any
+import abc
 
 def get_output_shape(model: nn.Module, input_shape: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]:
     # Figure out the output shape of an nn.Module.

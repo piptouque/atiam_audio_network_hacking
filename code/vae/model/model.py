@@ -4,8 +4,10 @@ import torch.nn.functional as func
 from base import BaseModel
 from utils import get_output_shape
 import numpy as np
+from torch.autograd import Variable
 
-from typing import Tuple
+from typing import Tuple, Callable, Union, Any
+import abc
 
 vae_config = {
     'conv_config': {
@@ -75,30 +77,94 @@ class ConvTranspose2dSame(nn.ConvTranspose2d):
         return x_conv
 
 
-class RandomSampling(BaseModel):
-    def __init__(self, input_size: int, latent_size: int) -> None:
+class RandomSampler(BaseModel):
+    def __init__(self, input_dim: Tuple[int, int, int], output_dim: Tuple[int, int, int], prior_distrib: torch.distributions.Distribution) -> None:
         super().__init__()
-        self._fc_mean = nn.Linear(input_size, latent_size)
-        self._fc_log_var = nn.Linear(input_size, latent_size)
+        self._input_dim = tuple(input_dim)
+        self._output_dim = tuple(output_dim)
+        self._prior_distrib = prior_distrib
+        self._x_last  = None
+        def hook(module: RandomSampler, args: Tuple[torch.Tensor]) -> None:
+            self._x_last = args[0]
+        self.register_forward_pre_hook(hook)
+        
+
+
+    def get_reconstruction_loss(self) -> Variable:
+        return self._log_likelihood(self._x_last).mean()
+
+    def get_divergence_loss(self) -> Variable:
+        return - self._kl_divergence(self._x_last).sum()
+
+    @abc.abstractmethod
+    def _log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
+        raise NotImplementedError()
+
+    def _kl_divergence(self, x: torch.Tensor) -> torch.Tensor:
+        return func.kl_div(self._log_likelihood(x), self._prior_distrib.log_prob(x), log_target=True)
+
+class GaussianRandomSampler(RandomSampler):
+    r"""
+    Actually only works with a Gaussian distribution
+    see:   Kingma, Diederik P., et Max Welling. « Auto-Encoding Variational Bayes ». ArXiv:1312.6114 [Cs, Stat], 1 mai 2014. http://arxiv.org/abs/1312.6114.
+    """
+    def __init__(self, input_dim: Tuple[int, int, int], output_dim: Tuple[int, int, int], fixed_var: Union[None, torch.Tensor] = None) -> None:
+        super().__init__(input_dim, output_dim, torch.distributions.Normal(0, 1))
+        self._l_mean = nn.Linear(self._input_dim[-1], self._output_dim[-1])
+        if fixed_var is None: 
+            self._l_logscale = nn.Linear(self._input_dim[-1], self._output_dim[-1])
+        else:
+            self._l_logscale = lambda _: torch.log(fixed_var)
 
         self.buffer_mean = None
-        self.buffer_var = None
-
-        self.distrib = torch.distributions.Normal(0, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        z_mean = self._fc_mean(x)
-        z_var = torch.exp(self._fc_log_var(x))
-        z = z_mean + z_var * self.distrib.sample()
-        self.buffer_mean = z_mean
-        self.buffer_var = z_var 
+        z_mean, z_scale = self._l_moments(x)
+        z = z_mean + z_scale * self._prior_distrib.sample()
         return z
+    def _l_moments(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._l_mean(x), torch.exp(self._l_logscale(x))
+
+    def _kl_divergence(self, x: torch.Tensor) -> torch.Tensor:
+        z_mean, z_scale = self._l_moments(x)
+        return 0.5 + torch.log(z_scale) - (z_scale ** 2 + z_mean ** 2)
+
+    def _log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
+        # copied from: https://pytorch.org/docs/stable/_modules/torch/distributions/normal.html#Normal.log_prob
+        z_mean, z_scale = self._l_moments(x)
+        return  - (x - z_mean) ** 2 / (2 * z_scale **2) - torch.log(z_scale) - np.log(np.sqrt(2*np.pi))
+
+
+class BernoulliRandomSampler(RandomSampler):
+    r"""    
+    The prior and posterior are still gaussian.
+    Used as a decoder when the input data (and so, output data) is binary.
+    """
+    def __init__(self, input_dim: Tuple[int, int, int], output_dim: Tuple[int, int, int]) -> None:
+        super().__init__(input_dim, output_dim, torch.distributions.Bernoulli(probs=0.5))
+        self._l_logits = nn.Sequential(
+            nn.Linear(self._input_dim[-1], self._output_dim[-1]),
+            nn.Tanh(),
+            nn.Linear(self._output_dim[-1], self._output_dim[-1]),
+            nn.Sigmoid()
+        )
+        self.buffer_y = None
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        logits = self._l_logits(x)
+        z = torch.bernoulli(logits)
+        return z
+
+    def _log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
+        # copied from: https://pytorch.org/docs/stable/_modules/torch/distributions/normal.html#Normal.log_prob
+        logits = self._l_logits(x)
+        return - func.binary_cross_entropy_with_logits(logits, x, reduction='none')
 
 # references: 
 # https://keras.io/examples/generative/vae/
 # https://avandekleut.github.io/vae/ 
 class VariationalEncoder(BaseModel):
-    def __init__(self, input_dim: Tuple[int, int, int], latent_size: int) -> None:
+    def __init__(self, input_dim: Tuple[int, int, int], latent_size: int, sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
         self._l_1 = nn.Sequential(
             Conv2dSame(input_dim[0], 32,**vae_config['conv_config']),
@@ -116,22 +182,28 @@ class VariationalEncoder(BaseModel):
             nn.Linear(conv_size, 16),
             nn.ReLU()
         )
-        self.sampler = RandomSampling(16, latent_size)
+
+        flat_out_shape = get_output_shape(self._l_2, conv_out_shape)
+        self.sampler = sampler_fac(flat_out_shape, (1, latent_size))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        z_h = self._l_1(x)
-        z_h = self._l_2(z_h)
-        z = self.sampler(z_h)
+        z_prob = self._l_1(x)
+        z_prob = self._l_2(z_prob)
+        z = self.sampler(z_prob)
         return z
 
 
-class Decoder(BaseModel):
-    def __init__(self, output_dim: Tuple[int, int, int], latent_size: int) -> None:
+class VariationalDecoder(BaseModel):
+    """[summary]
+    Note that it does not return the estimated $p(x)$, but x directly.
+    Args:
+        BaseModel ([type]): [description]
+    """
+    def __init__(self, output_dim: Tuple[int, int, int], latent_size: int, sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
         self._input_conv_dim = np.array(output_dim)
         #
-        #
-        # reduced height and width
+        # infer reduced height and width
         stride = vae_config['conv_config']['stride']
         self._input_conv_dim[-2:]= self._input_conv_dim[-2:]//stride**2
         # channel
@@ -139,6 +211,7 @@ class Decoder(BaseModel):
         #
         self._input_conv_dim = tuple(self._input_conv_dim)
         conv_size = np.prod(np.array(self._input_conv_dim))
+        #
         self._l_1 = nn.Sequential(
             nn.Linear(latent_size, conv_size),
             nn.ReLU()
@@ -149,24 +222,25 @@ class Decoder(BaseModel):
             ConvTranspose2dSame(32, output_dim[0], **vae_config['deconv_config']),
             nn.ReLU(),
             # fix: Getting back to the right (H, W) dimensions
-            #nn.ConvTranspose2dSame(output_dim[0], output_dim[0], kernel_size=vae_config['conv_config']['kernel_size']),
-            nn.Sigmoid()
+            #nn.ConvTranspos2dSame(output_dim[0], output_dim[0], kernel_size=vae_config['conv_config']['kernel_size']),
         )
+        #
+        self.sampler = sampler_fac(output_dim, output_dim)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
-        x_h = self._l_1(z)
-        x_h = torch.reshape(x_h, (z.shape[0],) + tuple(self._input_conv_dim))
-        x = self._l_2(x_h)
-        return x
+        x_prob = self._l_1(z)
+        x_prob = torch.reshape(x_prob, (z.shape[0],) + tuple(self._input_conv_dim))
+        x_prob = self._l_2(x_prob)
+        x_hat = self.sampler(x_prob)
+        return x_hat
         
 
 
 class MnistVae(BaseModel):
-    def __init__(self, image_dim: Tuple[int, int, int], latent_size: int) -> None:
+    def __init__(self, image_dim: Tuple[int, int, int], latent_size: int, e_sampler_fac: Callable[[Any], RandomSampler], d_sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
-
-        self.encoder = VariationalEncoder(image_dim, latent_size)
-        self.decoder = Decoder(image_dim, latent_size)
+        self.encoder = VariationalEncoder(image_dim, latent_size, sampler_fac=e_sampler_fac)
+        self.decoder = VariationalDecoder(image_dim, latent_size, sampler_fac=d_sampler_fac)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encoder(x)
