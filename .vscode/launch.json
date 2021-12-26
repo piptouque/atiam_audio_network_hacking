@@ -14,6 +14,15 @@
 
         },
         {
+            "name": "Resume: MNIST VAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/train.py",
+            "console": "integratedTerminal",
+            "args": ["--config", "${cwd}/code/config/mnist_vae_config.json", "--resume", "${file}"]
+
+        },
+        {
             "name": "Test: MNIST VAE",
             "type": "python",
             "request": "launch",
@@ -21,13 +30,6 @@
             "console": "integratedTerminal",
             "args": ["--config", "${cwd}/code/config/mnist_vae_config.json", "--resume", "${file}"]
 
-        },
-        {
-            "name": "Python: Current File",
-            "type": "python",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
         }
     ]
 }

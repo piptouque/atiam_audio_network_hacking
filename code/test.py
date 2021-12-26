@@ -5,7 +5,7 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
-from util.parse_config import ConfigParser
+from utils.parse_config import ConfigParser
 
 
 def main(config):
@@ -54,11 +54,11 @@ def main(config):
             #
 
             # computing loss, metrics on test set
-            loss = loss_fn(output, target)
+            loss = loss_fn(output, target, model)
             batch_size = data.shape[0]
             total_loss += loss.item() * batch_size
             for i, metric in enumerate(metric_fns):
-                total_metrics[i] += metric(output, target) * batch_size
+                total_metrics[i] += metric(output, target, model) * batch_size
 
     n_samples = len(data_loader.sampler)
     log = {'loss': total_loss / n_samples}

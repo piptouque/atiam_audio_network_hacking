@@ -11,19 +11,7 @@ class TensorboardWriter():
             log_dir = str(log_dir)
 
             # Retrieve vizualization writer.
-            succeeded = False
-            for module in ["torch.utils.tensorboard", "tensorboardX"]:
-                try:
-                    self.writer = importlib.import_module(module).SummaryWriter(log_dir)
-                    succeeded = True
-                    break
-                except ImportError:
-                    succeeded = False
-                # Quick fix
-                # see: https://github.com/pytorch/pytorch/pull/69904
-                except AttributeError:
-                    succeeded = False
-                self.selected_module = module
+            succeeded = self._get_ext_writer(log_dir)
 
             if not succeeded:
                 message = "Warning: visualization (Tensorboard) is configured to use, but currently not installed on " \
@@ -40,6 +28,18 @@ class TensorboardWriter():
         }
         self.tag_mode_exceptions = {'add_histogram', 'add_embedding'}
         self.timer = datetime.now()
+    
+    def _get_ext_writer(self, log_dir: str) -> bool:
+        succeeded = False
+        for module in ["torch.utils.tensorboard", "tensorboardX"]:
+            try:
+                self.writer = importlib.import_module(module).SummaryWriter(log_dir)
+                succeeded = True
+                break
+            except ImportError:
+                succeeded = False
+            self.selected_module = module
+        return succeeded
 
     def set_step(self, step, mode='train'):
         self.mode = mode

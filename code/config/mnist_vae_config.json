@@ -70,7 +70,7 @@
         }
     },
     "trainer": {
-        "epochs": 100,
+        "epochs": 40,
 
         "save_dir": "saved_models/",
         "save_period": 1,
