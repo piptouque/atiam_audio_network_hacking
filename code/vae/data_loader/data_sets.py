@@ -1,6 +1,9 @@
-from base import BaseDataset
+import torch
+from torchvision import datasets, transforms
 
 from typing import List, Tuple, Union
+
+from base import BaseDataset
 
 class UnsupervisedDataset(BaseDataset):
     """A decorator for datasets used in unsupervised settings.

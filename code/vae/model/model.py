@@ -83,25 +83,18 @@ class RandomSampler(BaseModel):
         self._input_dim = tuple(input_dim)
         self._output_dim = tuple(output_dim)
         self._prior_distrib = prior_distrib
-        self._x_last  = None
+        self._input_last  = None
         def hook(module: RandomSampler, args: Tuple[torch.Tensor]) -> None:
-            self._x_last = args[0]
+            self._input_last = args[0]
         self.register_forward_pre_hook(hook)
         
-
-
-    def get_reconstruction_loss(self) -> Variable:
-        return self._log_likelihood(self._x_last).mean()
-
-    def get_divergence_loss(self) -> Variable:
-        return - self._kl_divergence(self._x_last).sum()
-
     @abc.abstractmethod
-    def _log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
+    def log_likelihood(self, target: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError()
 
-    def _kl_divergence(self, x: torch.Tensor) -> torch.Tensor:
-        return func.kl_div(self._log_likelihood(x), self._prior_distrib.log_prob(x), log_target=True)
+    def kl_divergence(self, target: torch.Tensor) -> torch.Tensor:
+        return func.kl_div(self.log_likelihood(target), self._prior_distrib.log_prob(target), log_target=True)
+
 
 class GaussianRandomSampler(RandomSampler):
     r"""
@@ -118,21 +111,21 @@ class GaussianRandomSampler(RandomSampler):
 
         self.buffer_mean = None
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        z_mean, z_scale = self._l_moments(x)
+    def forward(self, y: torch.Tensor) -> torch.Tensor:
+        z_mean, z_scale = self._l_moments(y)
         z = z_mean + z_scale * self._prior_distrib.sample()
         return z
-    def _l_moments(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self._l_mean(x), torch.exp(self._l_logscale(x))
+    def _l_moments(self, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        return self._l_mean(y), torch.exp(self._l_logscale(y))
 
-    def _kl_divergence(self, x: torch.Tensor) -> torch.Tensor:
-        z_mean, z_scale = self._l_moments(x)
+    def kl_divergence(self, x: torch.Tensor) -> torch.Tensor:
+        z_mean, z_scale = self._l_moments(self._input_last)
         return 0.5 + torch.log(z_scale) - (z_scale ** 2 + z_mean ** 2)
 
-    def _log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
-        # copied from: https://pytorch.org/docs/stable/_modules/torch/distributions/normal.html#Normal.log_prob
-        z_mean, z_scale = self._l_moments(x)
-        return  - (x - z_mean) ** 2 / (2 * z_scale **2) - torch.log(z_scale) - np.log(np.sqrt(2*np.pi))
+    def log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
+        # adapted from: https://pytorch.org/docs/stable/_modules/torch/distributions/normal.html#Normal.log_prob
+        z_mean, z_scale = self._l_moments(self._input_last)
+        return  - ((x - z_mean) ** 2 / (2 * z_scale **2) + torch.log(z_scale) + np.log(np.sqrt(2*np.pi)))
 
 
 class BernoulliRandomSampler(RandomSampler):
@@ -142,23 +135,24 @@ class BernoulliRandomSampler(RandomSampler):
     """
     def __init__(self, input_dim: Tuple[int, int, int], output_dim: Tuple[int, int, int]) -> None:
         super().__init__(input_dim, output_dim, torch.distributions.Bernoulli(probs=0.5))
-        self._l_logits = nn.Sequential(
+        self._l_probs = nn.Sequential(
             nn.Linear(self._input_dim[-1], self._output_dim[-1]),
             nn.Tanh(),
             nn.Linear(self._output_dim[-1], self._output_dim[-1]),
             nn.Sigmoid()
         )
-        self.buffer_y = None
     
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        logits = self._l_logits(x)
-        z = torch.bernoulli(logits)
+    def forward(self, y: torch.Tensor) -> torch.Tensor:
+        probs = self._l_probs(y)
+        z = torch.bernoulli(probs)
         return z
 
-    def _log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
-        # copied from: https://pytorch.org/docs/stable/_modules/torch/distributions/normal.html#Normal.log_prob
-        logits = self._l_logits(x)
-        return - func.binary_cross_entropy_with_logits(logits, x, reduction='none')
+    def log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
+        # adapted from: https://pytorch.org/docs/stable/_modules/torch/distributions/bernoulli.html#Bernoulli.log_prob
+        probs = self._l_probs(self._input_last)
+        m = (x.min(), x.max(), probs.max())
+        log_probs = - func.binary_cross_entropy(probs, x, reduction='none')
+        return log_probs
 
 # references: 
 # https://keras.io/examples/generative/vae/

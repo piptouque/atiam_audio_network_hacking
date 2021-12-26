@@ -109,10 +109,13 @@ class ConfigParser:
         module_handle = root['handle']
         if module_handle == 'obj':
             return getattr(module, module_name)(*args, **module_args)
-        elif module_handle == 'ftn':
-            return partial(getattr(module, module_name), *args, **module_args)
+        elif module_handle == 'fun':
+            func = getattr(module, module_name)
+            res = partial(func, *args, **module_args)
+            res.__name__ = func.__name__
+            return res
         else:
-            raise AttributeError(f"{module_handle} handle not recognised!")
+            raise AttributeError(f"'{module_handle}' handle not recognised!")
             
     def _init_obj(self, root: object, module, rec: bool, *args, **kwargs):
         """

@@ -10,13 +10,13 @@
             "image_dim": [1, 28, 28],
             "latent_size": 2,
             "e_sampler_fac": {
-                "handle": "ftn",
+                "handle": "fun",
                 "type": "GaussianRandomSampler",
                 "args": {
                 }
             },
             "d_sampler_fac": {
-                "handle": "ftn",
+                "handle": "fun",
                 "type": "BernoulliRandomSampler",
                 "args": {
                 }
@@ -25,7 +25,7 @@
     },
     "data_loader": {
         "handle": "obj",
-        "type": "UnsupervisedMnistDataLoader",
+        "type": "UnsupervisedBinaryMnistDataLoader",
         "args":{
             "data_dir": "data/",
             "batch_size": 128,
@@ -39,12 +39,27 @@
         "type": "Adam",
         "args":{
             "lr": 0.001,
+            "betas": [0.9, 0.999],
+            "eps": 1e-07,
             "weight_decay": 0,
-            "amsgrad": true
+            "amsgrad": false
         }
     },
-    "loss": "vae_loss",
+    "loss": "vae_total_loss",
     "metrics": [
+        {
+            "handle": "fun",
+            "type": "vae_reconstruction_loss",
+            "args": {
+
+            }
+        }, {
+            "handle": "fun",
+            "type": "vae_divergence_loss",
+            "args": {
+
+            }
+        }
     ],
     "lr_scheduler": {
         "handle": "obj",
