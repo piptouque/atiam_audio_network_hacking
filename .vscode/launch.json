@@ -8,18 +8,18 @@
             "name": "Train: MNIST VAE",
             "type": "python",
             "request": "launch",
-            "program": "${cwd}/code/vae/train.py",
+            "program": "${cwd}/code/train.py",
             "console": "integratedTerminal",
-            "args": ["--config", "${cwd}/code/vae/mnist_vae_config.json"]
+            "args": ["--config", "${cwd}/code/config/mnist_vae_config.json"]
 
         },
         {
             "name": "Test: MNIST VAE",
             "type": "python",
             "request": "launch",
-            "program": "${cwd}/code/vae/test.py",
+            "program": "${cwd}/code/test.py",
             "console": "integratedTerminal",
-            "args": ["--config", "${cwd}/code/vae/mnist_vae_config.json", "--resume", "${file}"]
+            "args": ["--config", "${cwd}/code/config/mnist_vae_config.json", "--resume", "${file}"]
 
         },
         {
