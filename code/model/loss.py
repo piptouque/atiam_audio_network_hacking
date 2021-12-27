@@ -2,7 +2,7 @@ import torch.nn.functional as func
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from model import ImageVae
+from .model import ImageVae
 from .metric import  vae_divergence_loss, vae_reconstruction_loss
 
 

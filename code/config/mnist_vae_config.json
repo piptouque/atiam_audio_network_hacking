@@ -1,5 +1,5 @@
 {
-    "version": 3,
+    "version": 4,
     "name": "Mnist_Vae",
     "n_gpu": 1,
 
@@ -65,10 +65,19 @@
         }
     },
     "trainer": {
-        "type": "ImageVaeTrainer",
+        "type": "UnsupervisedTrainer",
         "args": {
 
         }
+    },
+    "visualizer": {
+        "type": "ImageVaeVisualizer",
+        "args": {
+
+        }
+    },
+    "logger": {
+        "config_path":  "logger_config.json"
     },
     "training": {
         "epochs": 40,
@@ -78,17 +87,13 @@
         "verbosity": 2,
         
         "monitor": "min val_loss",
-        "early_stop": 10,
-
-        "visualization": {
-            "tensorboard": true,
-            "plot_sampled_latent": true,
-            "plot_clusters_latent": true,
-            "sampled_latent_dim": [32, 32]
-        }
-
+        "early_stop": 10
     },
-    "logging": {
-        "path": "./logger_config.json"
+    "visualization": {
+        "tensorboard": true,
+        "plot_sampled_latent": true,
+        "plot_clusters_latent": true,
+        "sampled_latent_dim": [32, 32],
+        "clusters_latent_size": 5000
     }
 }

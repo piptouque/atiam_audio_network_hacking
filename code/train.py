@@ -6,6 +6,7 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
+import logger.visualization as module_visualization
 import trainer as module_trainer
 from utils import prepare_device
 from utils.parse_config import ConfigParser
@@ -19,7 +20,7 @@ torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
 
 def main(config):
-    logger = config.get_logger('train')
+    logger = config.get_logger('train', config['training']['verbosity'])
 
     # setup data_loader instances
     data_loader = config.init_obj('data_loader', module_data)
@@ -44,11 +45,15 @@ def main(config):
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
 
+    visualizer = config.init_obj('visualizer', module_visualization)
+
     trainer = config.init_obj('trainer', module_trainer,
                       model=model,
                       criterion=criterion,
                       metric_ftns=metric_ftns,
                       optimizer=optimizer,
+                      visualizer=visualizer,
+                      logger=logger,
                       config=config,
                       device=device,
                       data_loader=data_loader,

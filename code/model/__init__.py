@@ -1,1 +1,1 @@
-from .model import ImageVae
+from .model import *

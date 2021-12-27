@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 from torch.autograd import Variable
-from model import ImageVae
+from .model import ImageVae
 
 @torch.no_grad()
 def accuracy(output: torch.Tensor, target: torch.Tensor, _model: nn.Module, dim: int = 1) -> float:

@@ -1,77 +1,112 @@
-import importlib
-from datetime import datetime
+import torch
+import torchvision.utils
+from torch.autograd import Variable
+import numpy as np
+import matplotlib.pyplot as plt
+
+from typing import Tuple
+# tofix: why do I need to use base.base_visualizer instead of just base?
+from base.base_visualizer import BaseVisualizer
+from base import BaseDataLoader, BaseModel
+from model import ImageVae
 
 
-class TensorboardWriter():
-    def __init__(self, log_dir, logger, enabled):
-        self.writer = None
-        self.selected_module = ""
+class Visualizer(BaseVisualizer):
+    """[summary]
 
-        succeeded = False
-        if enabled:
-            log_dir = str(log_dir)
+    Args:
+        BaseVisualizer ([type]): [description]
+    """
+    def log_batch_train(self, model: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
+        self.writer.add_image('input', torchvision.utils.make_grid(
+            data.cpu(), nrow=8, normalize=True))
 
-            # Retrieve vizualization writer.
-            succeeded = self._get_ext_writer(log_dir)
+    def log_epoch_train(self, model: BaseModel, epoch: int, data_loader: BaseDataLoader) -> None:
+        pass
 
-            if not succeeded:
-                message = "Warning: visualization (Tensorboard) is configured to use, but currently not installed on " \
-                    "this machine. Please install TensorboardX with 'pip install tensorboardx', upgrade PyTorch to " \
-                    "version >= 1.1 to use 'torch.utils.tensorboard' or turn off the option in the 'config.json' file."
-                logger.warning(message)
-        self._enabled = enabled and succeeded
+    def log_batch_valid(self, model: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
+        self.writer.add_image('input', torchvision.utils.make_grid(
+            data.cpu(), nrow=8, normalize=True))
 
-        self.step = 0
-        self.mode = ''
+    def log_epoch_valid(self, model: BaseModel, epoch: int, data_loader: BaseDataLoader) -> None:
+        # add histogram of model parameters to the tensorboard
+        for name, p in model.named_parameters():
+            self.writer.add_histogram(name, p, bins='auto')
+class UnsupervisedVisualizer(Visualizer):
+    """[summary]
 
-        self.tag_mode_exceptions = {'add_histogram', 'add_embedding'}
-        self.timer = datetime.now()
-    
-    def _get_ext_writer(self, log_dir: str) -> bool:
-        succeeded = False
-        for module in ["torch.utils.tensorboard", "tensorboardX"]:
-            try:
-                writer = importlib.import_module(module).SummaryWriter(log_dir)
-                succeeded = True
-            except ImportError:
-                succeeded = False
-            if succeeded:
-                self.writer = writer
-                self.selected_module = module
-                break
-        return succeeded
+    Args:
+        BaseVisualizer ([type]): [description]
+    """
+    def log_batch_train(self, model: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable):
+        super().log_batch_train(model, epoch, batch_idx, data, output, label, loss)
+        self.writer.add_image('output', torchvision.utils.make_grid(
+            output.cpu(), nrow=8, normalize=True))
 
-    def set_step(self, step, mode='train'):
-        self.mode = mode
-        self.step = step
-        if step == 0:
-            self.timer = datetime.now()
-        else:
-            duration = datetime.now() - self.timer
-            self.add_scalar('steps_per_sec', 1 / duration.total_seconds())
-            self.timer = datetime.now()
+class ImageVaeVisualizer(UnsupervisedVisualizer):
+    """[summary]
 
-    def __getattr__(self, name):
+    Args:
+        UnsupervisedVisualizer ([type]): [description]
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def log_batch_train(self, model: ImageVae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
+        super().log_batch_train(model, epoch, batch_idx, data, output, label, loss)
+        assert model.latent_size == 2, "NOoooooooO"
+        if self.vis_cfg['plot_sampled_latent']:
+            sampled_latent_dim = self.vis_cfg['sampled_latent_dim']
+            x_hat = self._sample_latent(model, sampled_latent_dim)
+            self.writer.add_image('sampled_latent', torchvision.utils.make_grid(
+                x_hat.cpu(), nrow=sampled_latent_dim[0], normalize=True))
+
+    def log_epoch_train(self, model: ImageVae, epoch: int, data_loader: BaseDataLoader) -> None:
+        super().log_epoch_train(model, epoch, data_loader)
+        if self.vis_cfg['plot_clusters_latent']:
+            clusters_latent_size = self.vis_cfg['clusters_latent_size']
+            fig = plt.figure()
+            fig, ax = plt.subplots()
+
+            x, y, c = self._cluster_latent(model, data_loader, clusters_latent_size)
+            # .. do other stuff
+            # plot to ax3
+            coll = ax.scatter(x, y, c=c, cmap='tab10')
+            fig.colorbar(coll)
+            self.writer.add_figure('clusters_latent', fig)
+
+    def _sample_latent(self, model: ImageVae, dim: Tuple[int, int]) -> torch.Tensor:
+        """Get a tensor of images
+        linearly spaced coordinates corresponding to the 
+        classes in the latent space.
+        Args:
+            dim (Tuple[int, int]): [description]
+
+        Returns:
+            torch.Tensor: [description]
         """
-        If visualization is configured to use:
-            return add_data() methods of tensorboard with additional information (step, tag) added.
-        Otherwise:
-            return a blank function handle that does nothing
-        """
-        if self._enabled:
-            add_data = getattr(self.writer, name, None)
+        assert len(dim) == model.latent_size
+        with torch.no_grad():
+            z_1 = np.linspace(-1, 1, dim[0])
+            z_2 = np.linspace(-1, 1, dim[1])[::-1]
+            zz_1, zz_2 = np.meshgrid(z_1, z_2)
+            z = torch.cat((torch.tensor(zz_1[..., np.newaxis], dtype=torch.float), torch.tensor(zz_2[..., np.newaxis], dtype=torch.float)), -1)
+            z = torch.flatten(z, start_dim=0, end_dim=-2)
+            x_hat = model.decoder(z)
+            return x_hat
 
-            def wrapper(tag, data, *args, **kwargs):
-                if add_data is not None:
-                    # add mode(train/valid) tag
-                    if name not in self.tag_mode_exceptions:
-                        tag = '{}/{}'.format(tag, self.mode)
-                    add_data(tag, data, self.step, *args, **kwargs)
-            return wrapper
-        else:
-            # default action for returning methods defined in this class, set_step() for instance.
-            try:
-                attr = object.__getattr__(name)
-            except AttributeError:
-                raise AttributeError("type object '{}' has no attribute '{}'".format(self.selected_module, name))
-            return attr
+    def _cluster_latent(self, model: ImageVae, data_loader: BaseDataLoader, nb_points: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        x = []
+        y = []
+        c = []
+        n = 0
+        with torch.no_grad():
+            for _, (data, label) in enumerate(data_loader):
+                z = model.encoder(data).cpu().detach().numpy()
+                x.append(z[..., 0])
+                y.append(z[..., 1])
+                c.append(label.cpu().numpy())
+                n += z.shape[0]
+                if n > nb_points:
+                    break
+        return x, y, c

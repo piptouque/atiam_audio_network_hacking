@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as func
-from base import BaseModel
-from utils import get_output_shape
 import numpy as np
 from torch.autograd import Variable
 
 from typing import Tuple, Callable, Union, Any
 import abc
+from utils import get_output_shape
+from base import BaseModel
 
 vae_config = {
     'conv_config': {

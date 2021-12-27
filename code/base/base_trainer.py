@@ -3,7 +3,8 @@ import torch.nn as nn
 from torch.autograd import Variable
 from abc import abstractmethod
 from numpy import inf
-from logger import TensorboardWriter
+from utils.writer import TensorboardWriter
+from base.base_visualizer import BaseVisualizer
 
 from typing import Callable
 
@@ -13,19 +14,25 @@ class BaseTrainer:
     """
     Base class for all trainers
     """
-    def __init__(self, model, criterion: LossCriterion, metric_ftns, optimizer, config):
-        self.config = config
-        self.logger = config.get_logger('training', config['training']['verbosity'])
-
+    def __init__(self, model, criterion: LossCriterion, metric_ftns, optimizer, visualizer: BaseVisualizer, logger, config):
         self.model = model
         self.criterion = criterion
         self.metric_ftns = metric_ftns
         self.optimizer = optimizer
-
+        self.logger = logger
         cfg_trainer = config['training']
         self.epochs = cfg_trainer['epochs']
         self.save_period = cfg_trainer['save_period']
         self.monitor = cfg_trainer.get('monitor', 'off')
+
+        self.visualizer = visualizer
+        succeeded = self.visualizer.set_up(config.log_dir, config['visualization'])
+
+        if not succeeded:
+            message = "Warning: visualization (Tensorboard) is configured to use, but currently not installed on " \
+                "this machine. Please install TensorboardX with 'pip install tensorboardx', upgrade PyTorch to " \
+                "version >= 1.1 to use 'torch.utils.tensorboard' or turn off the option in the 'config.json' file."
+            logger.warning(message)
 
         # configuration to monitor model performance and save best
         if self.monitor == 'off':
@@ -45,8 +52,8 @@ class BaseTrainer:
         self.checkpoint_dir = config.save_dir
 
         # setup visualization writer instance                
-        self.writer = TensorboardWriter(config.log_dir, self.logger, cfg_trainer['visualization']['tensorboard'])
-
+        self.visualizer = visualizer
+        self.config = config
         if config.resume is not None:
             self._resume_checkpoint(config.resume)
 
@@ -107,8 +114,7 @@ class BaseTrainer:
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
 
-
-    def _progress(self, batch_idx):
+    def _progress(self, batch_idx: int) -> str:
         base = '[{}/{} ({:.0f}%)]'
         if hasattr(self.data_loader, 'n_samples'):
             current = batch_idx * self.data_loader.batch_size
