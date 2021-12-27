@@ -6,7 +6,7 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.model as module_arch
-from trainer import Trainer
+import trainer as module_trainer
 from utils import prepare_device
 from utils.parse_config import ConfigParser
 
@@ -22,11 +22,11 @@ def main(config):
     logger = config.get_logger('train')
 
     # setup data_loader instances
-    data_loader = config.init_handle('data_loader', module_data)
+    data_loader = config.init_obj('data_loader', module_data)
     valid_data_loader = data_loader.split_validation()
 
     # build model architecture, then print to console
-    model = config.init_handle('arch', module_arch)
+    model = config.init_handle('arch', module_arch, 'obj')
     logger.info(model)
 
     # prepare for (multi-device) GPU training
@@ -37,20 +37,23 @@ def main(config):
 
     # get function handles of loss and metrics
     criterion = getattr(module_loss, config['loss'])
-    metric_fns = [config.init_handle(['metrics', i], module_metric) for i in range(len(config['metrics']))]
+    metric_ftns = [config.init_ftn(['metrics', i], module_metric) for i in range(len(config['metrics']))]
 
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
-    optimizer = config.init_handle('optimizer', torch.optim, trainable_params)
-    lr_scheduler = config.init_handle('lr_scheduler', torch.optim.lr_scheduler, optimizer)
+    optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
+    lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
 
-    trainer = Trainer(model, criterion, metric_fns, optimizer,
+    trainer = config.init_obj('trainer', module_trainer,
+                      model=model,
+                      criterion=criterion,
+                      metric_ftns=metric_ftns,
+                      optimizer=optimizer,
                       config=config,
                       device=device,
                       data_loader=data_loader,
                       valid_data_loader=valid_data_loader,
                       lr_scheduler=lr_scheduler)
-
     trainer.train()
 
 

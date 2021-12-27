@@ -1,1 +1,1 @@
-from .model import MnistVae
+from .model import ImageVae

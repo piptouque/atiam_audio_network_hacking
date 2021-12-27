@@ -230,11 +230,12 @@ class VariationalDecoder(BaseModel):
         
 
 
-class MnistVae(BaseModel):
+class ImageVae(BaseModel):
     def __init__(self, image_dim: Tuple[int, int, int], latent_size: int, e_sampler_fac: Callable[[Any], RandomSampler], d_sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
         self.encoder = VariationalEncoder(image_dim, latent_size, sampler_fac=e_sampler_fac)
         self.decoder = VariationalDecoder(image_dim, latent_size, sampler_fac=d_sampler_fac)
+        self.latent_size = latent_size
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encoder(x)

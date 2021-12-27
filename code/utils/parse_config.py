@@ -24,7 +24,7 @@ class ConfigParser:
         self.resume = resume
 
         # set save_dir where trained model and log will be saved.
-        save_dir = Path(self.config['trainer']['save_dir'])
+        save_dir = Path(self.config['training']['save_dir'])
 
         exper_name = self.config['name']
         if run_id is None: # use timestamp as default run-id
@@ -41,7 +41,7 @@ class ConfigParser:
         write_json(self.config, self.save_dir / 'config.json')
 
         # configure logging module
-        setup_logging(self.log_dir)
+        setup_logging(self.log_dir, self.config['logging']['path'])
         self.log_levels = {
             0: logging.WARNING,
             1: logging.INFO,
@@ -78,7 +78,7 @@ class ConfigParser:
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
         return cls(config, resume, modification)
     
-    def init_handle(self, path: Union[str, List[Union[str, int]]], module, *args, **kwargs):
+    def init_handle(self, path: Union[str, List[Union[str, int]]], module, handle: str, *args, **kwargs):
         """
         Selects `_init_obj` or `_init_ftn` as appropriate.
         Also checks under specified `path` list of sub-keys.
@@ -104,35 +104,26 @@ class ConfigParser:
             for k,v in module_args.items():
                 if isinstance(v, dict) and 'args' in v:
                     # recursively init the arg
-                    module_args[k] = self.init_handle([*path, 'args', k], module)
+                    module_args[k] = self.init_handle([*path, 'args', k], module, v['handle'])
         module_name = root['type']
-        module_handle = root['handle']
-        if module_handle == 'obj':
+        module_handles = ['obj', 'ftn']
+        assert handle in module_handles, "'{module_handle}' handle not recognised"
+        if handle == 'obj':
             return getattr(module, module_name)(*args, **module_args)
-        elif module_handle == 'fun':
-            func = getattr(module, module_name)
-            res = partial(func, *args, **module_args)
-            res.__name__ = func.__name__
+        elif handle == 'ftn':
+            # hack: give the function handle the same name as the original
+            ftn = getattr(module, module_name)
+            res = partial(ftn, *args, **module_args)
+            res.__name__ = ftn.__name__
             return res
-        else:
-            raise AttributeError(f"'{module_handle}' handle not recognised!")
-            
-    def _init_obj(self, root: object, module, rec: bool, *args, **kwargs):
-        """
-        Finds a function handle with the name given as 'type' in config, and returns the
-        instance initialized with corresponding arguments given.
 
-        `object = config.init_obj('name', module, a, b=1)`
-        is equivalent to
-        `object = module.name(a, b=1)`
+    def init_obj(self, path: Union[str, List[Union[str, int]]], module, *args, **kwargs):
         """
-        module_name = root['type']
-        module_args = dict(root['args'])
-        assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
-        module_args.update(kwargs)
-        return getattr(module, module_name)(*args, **module_args)
+        TODO
+        """
+        return self.init_handle(path, module, 'obj', *args, **kwargs)
 
-    def _init_ftn(self, root: object, module, rec: bool, *args, **kwargs):
+    def init_ftn(self, path: Union[str, List[Union[str, int]]], module, *args, **kwargs):
         """
         Finds a function handle with the name given as 'type' in config, and returns the
         function with given arguments fixed with functools.partial.
@@ -141,11 +132,7 @@ class ConfigParser:
         is equivalent to
         `function = lambda *args, **kwargs: module.name(a, *args, b=1, **kwargs)`.
         """
-        module_name = root['type']
-        module_args = dict(root['args'])
-        assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
-        module_args.update(kwargs)
-        return partial(getattr(module, module_name), *args, **module_args)
+        return self.init_handle(path, module, 'ftn', *args, **kwargs)
 
     def __getitem__(self, name):
         """Access items like ordinary dict."""
@@ -175,7 +162,6 @@ class ConfigParser:
 def _update_config(config, modification):
     if modification is None:
         return config
-
     for k, v in modification.items():
         if v is not None:
             _set_by_path(config, k, v)

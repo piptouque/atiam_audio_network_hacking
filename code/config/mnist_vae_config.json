@@ -1,22 +1,22 @@
 {
-    "version": "0.2.0",
+    "version": 3,
     "name": "Mnist_Vae",
     "n_gpu": 1,
 
     "arch": {
         "handle": "obj",
-        "type": "MnistVae",
+        "type": "ImageVae",
         "args": {
             "image_dim": [1, 28, 28],
             "latent_size": 2,
             "e_sampler_fac": {
-                "handle": "fun",
+                "handle": "ftn",
                 "type": "GaussianRandomSampler",
                 "args": {
                 }
             },
             "d_sampler_fac": {
-                "handle": "fun",
+                "handle": "ftn",
                 "type": "BernoulliRandomSampler",
                 "args": {
                 }
@@ -24,8 +24,7 @@
         }
     },
     "data_loader": {
-        "handle": "obj",
-        "type": "UnsupervisedBinaryMnistDataLoader",
+        "type": "BinaryMnistDataLoader",
         "args":{
             "data_dir": "data/",
             "batch_size": 128,
@@ -35,7 +34,6 @@
         }
     },
     "optimizer": {
-        "handle": "obj",
         "type": "Adam",
         "args":{
             "lr": 0.001,
@@ -48,13 +46,11 @@
     "loss": "vae_total_loss",
     "metrics": [
         {
-            "handle": "fun",
             "type": "vae_reconstruction_loss",
             "args": {
 
             }
         }, {
-            "handle": "fun",
             "type": "vae_divergence_loss",
             "args": {
 
@@ -62,7 +58,6 @@
         }
     ],
     "lr_scheduler": {
-        "handle": "obj",
         "type": "StepLR",
         "args": {
             "step_size": 50,
@@ -70,6 +65,12 @@
         }
     },
     "trainer": {
+        "type": "ImageVaeTrainer",
+        "args": {
+
+        }
+    },
+    "training": {
         "epochs": 40,
 
         "save_dir": "saved_models/",
@@ -79,6 +80,15 @@
         "monitor": "min val_loss",
         "early_stop": 10,
 
-        "tensorboard": true
+        "visualization": {
+            "tensorboard": true,
+            "plot_sampled_latent": true,
+            "plot_clusters_latent": true,
+            "sampled_latent_dim": [32, 32]
+        }
+
+    },
+    "logging": {
+        "path": "./logger_config.json"
     }
 }

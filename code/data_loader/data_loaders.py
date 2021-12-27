@@ -1,7 +1,5 @@
 from torchvision import datasets, transforms
 from base import BaseDataLoader
-from .data_sets import UnsupervisedDataset
-
 
 class MnistDataLoader(BaseDataLoader):
     """
@@ -16,12 +14,12 @@ class MnistDataLoader(BaseDataLoader):
         self.dataset = datasets.MNIST(self.data_dir, train=training, download=True, transform=trsfm)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
 
-class UnsupervisedBinaryMnistDataLoader(BaseDataLoader):
+class BinaryMnistDataLoader(BaseDataLoader):
     def __init__(self, data_dir: str, batch_size: int, shuffle=True, validation_split=0.0, num_workers=1, training=True) -> None:
         self.data_dir = data_dir
         trsfm = transforms.Compose([
             transforms.ToTensor(),
             # transforms.Normalize((0.5,), (0.5,)),
         ])
-        self.dataset = UnsupervisedDataset(datasets.MNIST(self.data_dir, train=training, download=True, transform=trsfm))
+        self.dataset = datasets.MNIST(self.data_dir, train=training, download=True, transform=trsfm)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)

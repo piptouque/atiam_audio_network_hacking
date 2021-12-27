@@ -15,14 +15,14 @@ class BaseTrainer:
     """
     def __init__(self, model, criterion: LossCriterion, metric_ftns, optimizer, config):
         self.config = config
-        self.logger = config.get_logger('trainer', config['trainer']['verbosity'])
+        self.logger = config.get_logger('training', config['training']['verbosity'])
 
         self.model = model
         self.criterion = criterion
         self.metric_ftns = metric_ftns
         self.optimizer = optimizer
 
-        cfg_trainer = config['trainer']
+        cfg_trainer = config['training']
         self.epochs = cfg_trainer['epochs']
         self.save_period = cfg_trainer['save_period']
         self.monitor = cfg_trainer.get('monitor', 'off')
@@ -45,7 +45,7 @@ class BaseTrainer:
         self.checkpoint_dir = config.save_dir
 
         # setup visualization writer instance                
-        self.writer = TensorboardWriter(config.log_dir, self.logger, cfg_trainer['tensorboard'])
+        self.writer = TensorboardWriter(config.log_dir, self.logger, cfg_trainer['visualization']['tensorboard'])
 
         if config.resume is not None:
             self._resume_checkpoint(config.resume)
@@ -57,6 +57,10 @@ class BaseTrainer:
 
         :param epoch: Current epoch number
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _log_batch(self, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, target: torch.Tensor, loss: Variable):
         raise NotImplementedError
 
     def train(self):
@@ -102,6 +106,17 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
+
+
+    def _progress(self, batch_idx):
+        base = '[{}/{} ({:.0f}%)]'
+        if hasattr(self.data_loader, 'n_samples'):
+            current = batch_idx * self.data_loader.batch_size
+            total = self.data_loader.n_samples
+        else:
+            current = batch_idx
+            total = self.len_epoch
+        return base.format(current, total, 100.0 * current / total)
 
     def _save_checkpoint(self, epoch, save_best=False):
         """
