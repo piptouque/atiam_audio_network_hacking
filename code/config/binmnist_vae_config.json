@@ -17,15 +17,14 @@
             },
             "d_sampler_fac": {
                 "handle": "ftn",
-                "type": "GaussianRandomSampler",
+                "type": "BernoulliRandomSampler",
                 "args": {
-                    "fixed_var": 1.0
                 }
             }
         }
     },
     "data_loader": {
-        "type": "MnistDataLoader",
+        "type": "BinaryMnistDataLoader",
         "args":{
             "data_dir": "data/",
             "batch_size": 128,

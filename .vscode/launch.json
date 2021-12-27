@@ -5,6 +5,33 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Train: BinaryMNIST VAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/train.py",
+            "console": "integratedTerminal",
+            "args": ["--config", "${cwd}/code/config/binmnist_vae_config.json"]
+
+        },
+        {
+            "name": "Resume: BinaryMNIST VAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/train.py",
+            "console": "integratedTerminal",
+            "args": ["--config", "${cwd}/code/config/binmnist_vae_config.json", "--resume", "${file}"]
+
+        },
+        {
+            "name": "Test: BinaryMNIST VAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/test.py",
+            "console": "integratedTerminal",
+            "args": ["--config", "${cwd}/code/config/binmnist_vae_config.json", "--resume", "${file}"]
+
+        },
+        {
             "name": "Train: MNIST VAE",
             "type": "python",
             "request": "launch",
@@ -30,6 +57,6 @@
             "console": "integratedTerminal",
             "args": ["--config", "${cwd}/code/config/mnist_vae_config.json", "--resume", "${file}"]
 
-        }
+        },
     ]
 }

@@ -22,12 +22,13 @@ vae_config = {
     }
 }
 
-# Important:
-# "same" padding currently requires 'stride'==1 in PyTorch
-# see: https://github.com/pytorch/pytorch/issues/67551
-# So using this work-around to model TensorFlow behaviour
-# from: https://github.com/pytorch/pytorch/issues/67551#issuecomment-954972351
 class ConvUtil:
+    """
+    'same' padding currently requires 'stride'==1 in PyTorch
+    see: https://github.com/pytorch/pytorch/issues/67551
+    So using this work-around to model TensorFlow behaviour
+    from: https://github.com/pytorch/pytorch/issues/67551#issuecomment-954972351
+    """
     @staticmethod
     def conv_padding_same(i: int, k: int, s: int, d: int) -> int:
         return np.max((np.ceil(i / s) - 1) * s + (k - 1) * d + 1 - i, 0).astype(int)
@@ -83,17 +84,17 @@ class RandomSampler(BaseModel):
         self._input_dim = tuple(input_dim)
         self._output_dim = tuple(output_dim)
         self._prior_distrib = prior_distrib
-        self._input_last  = None
+        self.input_last  = None
         def hook(module: RandomSampler, args: Tuple[torch.Tensor]) -> None:
-            self._input_last = args[0]
+            self.input_last = args[0]
         self.register_forward_pre_hook(hook)
         
     @abc.abstractmethod
-    def log_likelihood(self, target: torch.Tensor) -> torch.Tensor:
+    def log_likelihood(self, target: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError()
 
-    def kl_divergence(self, target: torch.Tensor) -> torch.Tensor:
-        return func.kl_div(self.log_likelihood(target), self._prior_distrib.log_prob(target), log_target=True)
+    def kl_divergence(self, target: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:
+        return func.kl_div(self.log_likelihood(input_last), self._prior_distrib.log_prob(target), log_target=True)
 
 
 class GaussianRandomSampler(RandomSampler):
@@ -103,28 +104,32 @@ class GaussianRandomSampler(RandomSampler):
     """
     def __init__(self, input_dim: Tuple[int, int, int], output_dim: Tuple[int, int, int], fixed_var: Union[None, torch.Tensor] = None) -> None:
         super().__init__(input_dim, output_dim, torch.distributions.Normal(0, 1))
+        self._l_1 = nn.Sequential(
+            nn.Linear(self._input_dim[-1], self._input_dim[-1]),
+            nn.Tanh(),
+        )
         self._l_mean = nn.Linear(self._input_dim[-1], self._output_dim[-1])
         if fixed_var is None: 
             self._l_logscale = nn.Linear(self._input_dim[-1], self._output_dim[-1])
         else:
-            self._l_logscale = lambda _: torch.log(fixed_var)
-
-        self.buffer_mean = None
+            self._l_logscale = lambda _: torch.log(torch.tensor(fixed_var))
 
     def forward(self, y: torch.Tensor) -> torch.Tensor:
         z_mean, z_scale = self._l_moments(y)
         z = z_mean + z_scale * self._prior_distrib.sample()
         return z
-    def _l_moments(self, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        return self._l_mean(y), torch.exp(self._l_logscale(y))
 
-    def kl_divergence(self, x: torch.Tensor) -> torch.Tensor:
-        z_mean, z_scale = self._l_moments(self._input_last)
+    def _l_moments(self, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        y_h = self._l_1(y)
+        return self._l_mean(y_h), torch.exp(self._l_logscale(y_h))
+
+    def kl_divergence(self, _x: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:
+        z_mean, z_scale = self._l_moments(input_last)
         return 0.5 + torch.log(z_scale) - (z_scale ** 2 + z_mean ** 2)
 
-    def log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
+    def log_likelihood(self, x: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:
         # adapted from: https://pytorch.org/docs/stable/_modules/torch/distributions/normal.html#Normal.log_prob
-        z_mean, z_scale = self._l_moments(self._input_last)
+        z_mean, z_scale = self._l_moments(input_last)
         return  - ((x - z_mean) ** 2 / (2 * z_scale **2) + torch.log(z_scale) + np.log(np.sqrt(2*np.pi)))
 
 
@@ -147,10 +152,9 @@ class BernoulliRandomSampler(RandomSampler):
         z = torch.bernoulli(probs)
         return z
 
-    def log_likelihood(self, x: torch.Tensor) -> torch.Tensor:
+    def log_likelihood(self, x: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:
         # adapted from: https://pytorch.org/docs/stable/_modules/torch/distributions/bernoulli.html#Bernoulli.log_prob
-        probs = self._l_probs(self._input_last)
-        m = (x.min(), x.max(), probs.max())
+        probs = self._l_probs(input_last)
         log_probs = - func.binary_cross_entropy(probs, x, reduction='none')
         return log_probs
 

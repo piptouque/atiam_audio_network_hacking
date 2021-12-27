@@ -30,14 +30,14 @@ def vae_reconstruction_loss(_output: torch.Tensor, target: torch.Tensor, model: 
     # dim = tuple(np.arange(-target.ndim + 1, 0))
     # first sum over each sample in the batch
     # then average over the batch.
-    loss = - model.decoder.sampler.log_likelihood(target)
+    loss = - model.decoder.sampler.log_likelihood(target, model.decoder.sampler.input_last)
     dim = tuple(np.arange(1, loss.ndim))
     loss = loss.sum(dim=dim).mean()
     return loss
 
 def vae_divergence_loss(_output: torch.Tensor, target: torch.Tensor, model: ImageVae) -> Variable:
     # dim = tuple(np.arange(1, target.ndim))
-    loss = - model.encoder.sampler.kl_divergence(target)
+    loss = - model.encoder.sampler.kl_divergence(target, model.encoder.sampler.input_last)
     dim = tuple(np.arange(1, loss.ndim))
     loss = loss.sum(dim=dim).mean()
     return loss

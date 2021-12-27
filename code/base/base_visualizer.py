@@ -1,7 +1,7 @@
+import abc
 import torch
 from torch.autograd import Variable
 from utils.writer import TensorboardWriter
-import abc
 from base import BaseModel, BaseDataLoader
 
 
@@ -19,7 +19,7 @@ class BaseVisualizer:
         return succeeded
 
     @abc.abstractmethod
-    def log_batch_train(self, trainer: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
+    def log_batch_train(self, model: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
         """Called after computing training on a single batch.
 
         Args:
