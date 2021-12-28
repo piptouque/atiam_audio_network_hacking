@@ -7,11 +7,17 @@
 
 ### Models
 
-1) MNIST VAE
+[Link](https://www.dropbox.com/sh/vmampx0zyz7hxw7/AABQ9FFVGdM2SEdg1PIVMBoRa?dl=0) to pre-trained models and logs.
 
-    - Config path: `code/config/models/mnist_vae_config.json`
-    - Log directory: `saved_models/log/Mnist_Vae/`
-    - Checkpoint directory: `saved_models/models/Mnist_Vae/`
+
+1) Image VAE
+
+
+    |                   | Data type | Output distribution | Reconstruction loss  |
+    |-------------------|:---------:|--------------------:|---------------------:|
+    | BMNIST VAE        | Binary    | Bernoulli           | Binary cross-entropy |
+    | MNIST VAE         | Greyscale | Normal              | Mean-squared error   |
+    | MNIST $\beta$-VAE | Greyscale | Normal              | Mean-squared error   |
 
 2) Audio VAE 
 
@@ -19,6 +25,11 @@
 
 ## Code
 
+### Paths
+
+- Config paths: `code/config/models/{model_type}_config.json`
+- Log directory: `saved_models/log/{model_name}/`
+- Checkpoint directory: `saved_models/models/{model_name}/`
 ### Set-up
 
 1) Create Conda environment if necessary:
