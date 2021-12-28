@@ -4,7 +4,7 @@ from torch.autograd import Variable
 from base import BaseTrainer, LossCriterion, DataLoader
 from utils import inf_loop, MetricTracker
 
-from model import ImageVae
+from model import Vae, BetaVae
 from typing import Tuple, List
 
 class Trainer(BaseTrainer):
@@ -26,7 +26,11 @@ class Trainer(BaseTrainer):
             self.len_epoch = len_epoch
         self.valid_data_loader = valid_data_loader
         self.do_validation = self.valid_data_loader is not None
-        self.lr_scheduler = lr_scheduler
+
+        self.schedulers = { }
+        if lr_scheduler is not None:
+            self.schedulers['lr'] = lr_scheduler
+
         self.log_step = int(np.sqrt(data_loader.batch_size))
 
         self.train_metrics = MetricTracker(
@@ -43,6 +47,7 @@ class Trainer(BaseTrainer):
 
         :param epoch: Integer, current training epoch.
         :return: A log that contains average loss and metric in this epoch.
+        if self.beta_scheduler
         """
         self.model.train()
         self.train_metrics.reset()
@@ -79,10 +84,16 @@ class Trainer(BaseTrainer):
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
             log.update(**{'val_'+k: v for k, v in val_log.items()})
+        
+        for scheduler in self.schedulers.values():
+            scheduler.step()
 
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
+        self._post_epoch(epoch)
+        
         return log
+
+    def _post_epoch(self, epoch) -> None:
+        pass
 
     def _valid_epoch(self, epoch):
         """
@@ -119,3 +130,15 @@ class UnsupervisedTrainer(Trainer):
     """
     def _choose_target(self, data: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
         return data
+
+class BetaVaeTrainer(UnsupervisedTrainer):
+
+
+    def __init__(self, model, criterion, metric_ftns, optimizer, visualizer, logger, config, device, data_loader,
+                 valid_data_loader=None, lr_scheduler=None, len_epoch=None) -> None:
+        super(BetaVaeTrainer, self).__init__(model, criterion, metric_ftns, optimizer, visualizer, logger, config, device, data_loader, valid_data_loader=valid_data_loader, lr_scheduler=lr_scheduler, len_epoch=len_epoch)
+        assert isinstance(self.model, BetaVae)
+
+    def _post_epoch(self, epoch: int) -> None:
+        self.model.beta_scheduler.step(epoch)
+        

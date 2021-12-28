@@ -8,7 +8,7 @@ from typing import Tuple
 # tofix: why do I need to use base.base_visualizer instead of just base?
 from base.base_visualizer import BaseVisualizer
 from base import BaseDataLoader, BaseModel
-from model import ImageVae
+from model import Vae
 
 
 class Visualizer(BaseVisualizer):
@@ -43,14 +43,14 @@ class UnsupervisedVisualizer(Visualizer):
         self.writer.add_image('output', torchvision.utils.make_grid(
             output.cpu(), nrow=8, normalize=True))
 
-class ImageVaeVisualizer(UnsupervisedVisualizer):
+class VaeVisualizer(UnsupervisedVisualizer):
     """[summary]
 
     Args:
         UnsupervisedVisualizer ([type]): [description]
     """
 
-    def log_batch_train(self, model: ImageVae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
+    def log_batch_train(self, model: Vae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
         super().log_batch_train(model, epoch, batch_idx, data, output, label, loss)
         s_cfg = self.vis_cfg['sampled_latent']
         if s_cfg['plot']:
@@ -61,7 +61,7 @@ class ImageVaeVisualizer(UnsupervisedVisualizer):
             self.writer.add_image('sampled_latent', torchvision.utils.make_grid(
                 x_hat.cpu(), nrow=nb_points[0], normalize=True))
 
-    def log_epoch_train(self, model: ImageVae, epoch: int, data_loader: BaseDataLoader) -> None:
+    def log_epoch_train(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
         super().log_epoch_train(model, epoch, data_loader)
         c_cfg = self.vis_cfg['clusters_latent']
         if c_cfg['plot']:
@@ -76,8 +76,9 @@ class ImageVaeVisualizer(UnsupervisedVisualizer):
             coll = ax.scatter(x, y, c=c, cmap='tab10')
             fig.colorbar(coll)
             self.writer.add_figure('clusters_latent', fig)
+            plt.close(fig)
 
-    def _sample_latent(self, model: ImageVae, lims: Tuple[Tuple[int, int], Tuple[int, int]], nb_points: Tuple[int, int]) -> torch.Tensor:
+    def _sample_latent(self, model: Vae, lims: Tuple[Tuple[int, int], Tuple[int, int]], nb_points: Tuple[int, int]) -> torch.Tensor:
         """Get a tensor of images
         linearly spaced coordinates corresponding to the 
         classes in the latent space.
@@ -98,7 +99,7 @@ class ImageVaeVisualizer(UnsupervisedVisualizer):
             x_hat = model.decoder(z)
             return x_hat
 
-    def _cluster_latent(self, model: ImageVae, data_loader: BaseDataLoader, nb_points: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _cluster_latent(self, model: Vae, data_loader: BaseDataLoader, nb_points: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         x = []
         y = []
         c = []

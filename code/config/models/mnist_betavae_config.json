@@ -1,30 +1,45 @@
 {
-    "version": 4,
-    "name": "BinaryMnist_Vae",
+    "version": 5,
+    "name": "Mnist_BetaVae",
     "n_gpu": 1,
 
     "arch": {
         "handle": "obj",
-        "type": "ImageVae",
+        "module": "model",
+        "type": "BetaVae",
         "args": {
-            "image_dim": [1, 28, 28],
+            "input_dim": [1, 28, 28],
             "latent_size": 2,
             "e_sampler_fac": {
                 "handle": "ftn",
+                "module": "model",
                 "type": "GaussianRandomSampler",
                 "args": {
                 }
             },
             "d_sampler_fac": {
                 "handle": "ftn",
+                "module": "model",
                 "type": "GaussianRandomSampler",
                 "args": {
                     "fixed_var": 1.0
+                }
+            },
+            "beta_scheduler": {
+                "handle": "obj",
+                "module": "model",
+                "type": "BetaScheduler",
+                "args": {
+                    "step_size": 50,
+                    "gamma": 0.1,
+                    "init_val": 0,
+                    "bounds": [0, 1000]
                 }
             }
         }
     },
     "data_loader": {
+        "module": "data_loader",
         "type": "MnistDataLoader",
         "args":{
             "data_dir": "data/",
@@ -35,6 +50,7 @@
         }
     },
     "optimizer": {
+        "module": "torch.optim",
         "type": "Adam",
         "args":{
             "lr": 0.001,
@@ -44,14 +60,21 @@
             "amsgrad": false
         }
     },
-    "loss": "vae_total_loss",
+    "loss": {
+        "module": "loss",
+        "type": "beta_vae_total_loss",
+        "args": {
+        }
+    },
     "metrics": [
         {
+            "module": "metric",
             "type": "vae_reconstruction_loss",
             "args": {
 
             }
         }, {
+            "module": "metric",
             "type": "vae_divergence_loss",
             "args": {
 
@@ -59,6 +82,7 @@
         }
     ],
     "lr_scheduler": {
+            "module": "torch.optim.lr_scheduler",
         "type": "StepLR",
         "args": {
             "step_size": 50,
@@ -66,19 +90,18 @@
         }
     },
     "trainer": {
-        "type": "UnsupervisedTrainer",
+        "module": "trainer",
+        "type": "BetaVaeTrainer",
         "args": {
 
         }
     },
     "visualizer": {
-        "type": "ImageVaeVisualizer",
+        "module": "visualizer",
+        "type": "VaeVisualizer",
         "args": {
 
         }
-    },
-    "logger": {
-        "config_path":  "logger_config.json"
     },
     "training": {
         "epochs": 40,

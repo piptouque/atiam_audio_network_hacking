@@ -26,7 +26,7 @@ def main(config):
     logger.info(model)
 
     # get function handles of loss and metrics
-    loss_fn = getattr(module_loss, config['loss'])
+    criterion = config.init_ftn('loss', module_loss)
     metric_fns = [config.init_ftn(['metrics', i], module_metric) for i in range(len(config['metrics']))]
 
     logger.info('Loading checkpoint: {} ...'.format(config.resume))
@@ -45,8 +45,13 @@ def main(config):
     total_metrics = torch.zeros(len(metric_fns))
 
     with torch.no_grad():
-        for i, (data, target) in enumerate(tqdm(data_loader)):
-            data, target = data.to(device), target.to(device)
+        for i, (data, label) in enumerate(tqdm(data_loader)):
+            data, label = data.to(device), label.to(device)
+            # DIRTY HACK: will only use unsupervised models so here using unsupervised loss
+            # TODO: implement a Tester, to mimicking Trainer? Or find some unifying logic (copy TensorFlow)
+            choose_target = lambda data, label: data
+            target = choose_target(data, label)
+
             output = model(data)
 
             #
@@ -54,7 +59,7 @@ def main(config):
             #
 
             # computing loss, metrics on test set
-            loss = loss_fn(output, target, model)
+            loss = criterion(output, target, model)
             batch_size = data.shape[0]
             total_loss += loss.item() * batch_size
             for i, metric in enumerate(metric_fns):
@@ -76,6 +81,8 @@ if __name__ == '__main__':
                       help='path to latest checkpoint (default: None)')
     args.add_argument('-d', '--device', default=None, type=str,
                       help='indices of GPUs to enable (default: all)')
+    args.add_argument('-l', '--logger', default=None, type=str,
+                      help='logger config path (default: None)')
 
     config = ConfigParser.from_args(args)
     main(config)

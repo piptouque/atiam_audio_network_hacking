@@ -6,11 +6,11 @@ from operator import getitem
 from datetime import datetime
 from logger import setup_logging
 from utils import read_json, write_json
+import importlib
 
-from typing import List, Union
-
+from typing import List, Union, Any
 class ConfigParser:
-    def __init__(self, config, resume=None, modification=None, run_id=None):
+    def __init__(self, config, log_config=None, resume=None, modification=None, run_id=None):
         """
         class to parse configuration json file. Handles hyperparameters for training, initializations of modules, checkpoint saving
         and logging module.
@@ -40,8 +40,9 @@ class ConfigParser:
         # save updated config file to the checkpoint dir
         write_json(self.config, self.save_dir / 'config.json')
 
+        setup_logging(self.log_dir, log_config=log_config)
+
         # configure logging module
-        setup_logging(self.log_dir, self.config['logger']['config_path'])
         self.log_levels = {
             0: logging.WARNING,
             1: logging.INFO,
@@ -73,12 +74,17 @@ class ConfigParser:
         if args.config and resume:
             # update new config for fine-tuning
             config.update(read_json(args.config))
+        log_config = None
+        if args.logger:
+            log_config = read_json(args.logger)
 
         # parse custom cli options into dictionary
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
-        return cls(config, resume, modification)
+
+        #
+        return cls(config, log_config=log_config, resume=resume, modification=modification)
     
-    def init_handle(self, path: Union[str, List[Union[str, int]]], module, handle: str, *args, **kwargs):
+    def init_handle(self, path: Union[str, List[Union[str, int]]], module: Union[str, Any], handle: str, *args, **kwargs):
         """
         Selects `_init_obj` or `_init_ftn` as appropriate.
         Also checks under specified `path` list of sub-keys.
@@ -95,27 +101,32 @@ class ConfigParser:
             root = self[path]
             path = [path]
         
-        module_args = dict(root['args'])
-        assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
-        module_args.update(kwargs)
+        ftn_args = dict(root['args'])
+        assert all([k not in ftn_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
+        ftn_args.update(kwargs)
         # force rec for now
         rec = True
         if rec:
-            for k,v in module_args.items():
+            for k,v in ftn_args.items():
                 if isinstance(v, dict) and 'args' in v:
                     # recursively init the arg
-                    module_args[k] = self.init_handle([*path, 'args', k], module, v['handle'])
-        module_name = root['type']
-        module_handles = ['obj', 'ftn']
-        assert handle in module_handles, "'{module_handle}' handle not recognised"
+                    ftn_args[k] = self.init_handle([*path, 'args', k], v['module'], v['handle'])
+        ftn_name = root['type']
+        ftn_handles = ['obj', 'ftn']
+        if isinstance(module, str):
+            try:
+                module = importlib.import_module(module)
+            except ImportError:
+                assert False, f"Could not import module {module}"
+        assert handle in ftn_handles, f"'{ftn_handle}' handle not recognised"
         if handle == 'obj':
-            return getattr(module, module_name)(*args, **module_args)
+            return getattr(module, ftn_name)(*args, **ftn_args)
         elif handle == 'ftn':
             # hack: give the function handle the same name as the original
-            ftn = getattr(module, module_name)
-            res = partial(ftn, *args, **module_args)
-            res.__name__ = ftn.__name__
-            return res
+            ftn = getattr(module, ftn_name)
+            ftn_n = partial(ftn, *args, **ftn_args)
+            ftn_n.__name__ = ftn.__name__
+            return ftn_n
 
     def init_obj(self, path: Union[str, List[Union[str, int]]], module, *args, **kwargs):
         """

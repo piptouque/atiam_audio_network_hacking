@@ -10,8 +10,12 @@
             "request": "launch",
             "program": "${cwd}/code/train.py",
             "console": "integratedTerminal",
-            "args": ["--config", "${cwd}/code/config/binmnist_vae_config.json"]
-
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/binmnist_vae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json"
+            ]
         },
         {
             "name": "Resume: BinaryMNIST VAE",
@@ -19,8 +23,14 @@
             "request": "launch",
             "program": "${cwd}/code/train.py",
             "console": "integratedTerminal",
-            "args": ["--config", "${cwd}/code/config/binmnist_vae_config.json", "--resume", "${file}"]
-
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/binmnist_vae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json",
+                "--resume",
+                "${file}"
+            ]
         },
         {
             "name": "Test: BinaryMNIST VAE",
@@ -28,8 +38,14 @@
             "request": "launch",
             "program": "${cwd}/code/test.py",
             "console": "integratedTerminal",
-            "args": ["--config", "${cwd}/code/config/binmnist_vae_config.json", "--resume", "${file}"]
-
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/binmnist_vae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json",
+                "--resume",
+                "${file}"
+            ]
         },
         {
             "name": "Train: MNIST VAE",
@@ -37,8 +53,12 @@
             "request": "launch",
             "program": "${cwd}/code/train.py",
             "console": "integratedTerminal",
-            "args": ["--config", "${cwd}/code/config/mnist_vae_config.json"]
-
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/mnist_vae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json"
+            ]
         },
         {
             "name": "Resume: MNIST VAE",
@@ -46,8 +66,14 @@
             "request": "launch",
             "program": "${cwd}/code/train.py",
             "console": "integratedTerminal",
-            "args": ["--config", "${cwd}/code/config/mnist_vae_config.json", "--resume", "${file}"]
-
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/mnist_vae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json",
+                "--resume",
+                "${file}"
+            ]
         },
         {
             "name": "Test: MNIST VAE",
@@ -55,8 +81,57 @@
             "request": "launch",
             "program": "${cwd}/code/test.py",
             "console": "integratedTerminal",
-            "args": ["--config", "${cwd}/code/config/mnist_vae_config.json", "--resume", "${file}"]
-
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/mnist_vae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json",
+                "--resume",
+                "${file}"
+            ]
+        },
+        {
+            "name": "Train: MNIST BetaVAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/mnist_betavae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json"
+            ]
+        },
+        {
+            "name": "Resume: MNIST BetaVAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/mnist_betavae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json",
+                "--resume",
+                "${file}"
+            ]
+        },
+        {
+            "name": "Test: MNIST BetaVAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/mnist_betavae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json",
+                "--resume",
+                "${file}"
+            ]
         },
     ]
 }

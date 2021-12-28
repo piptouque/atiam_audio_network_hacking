@@ -9,7 +9,7 @@
 
 1) MNIST VAE
 
-    - Config path: `code/config/mnist_vae_config.json`
+    - Config path: `code/config/models/mnist_vae_config.json`
     - Log directory: `saved_models/log/Mnist_Vae/`
     - Checkpoint directory: `saved_models/models/Mnist_Vae/`
 
@@ -55,7 +55,7 @@ the `Resume: [Your Model]` option in the 'Run and Debug' tab.
 b) From the command line:
 
 ```bash
-    python3 ./code/train.py --config "path_to_model_config_file.json" [--resume "path_to_model_checkpoint_file.pkl"])
+    python3 ./code/train.py --config "your_path_to_model_config_file.json" [--resume "your_path_to_model_checkpoint_file.pkl"])
 ```
 
 #### Using TensorBoard
@@ -72,7 +72,7 @@ a) In VScode:
 b) From the command line:
 
 ```bash
-    tensorboard --logdir "log_dir"
+    tensorboard --logdir "your_log_dir"
 ```
 
 - Then follow the given address in a web browser
@@ -91,7 +91,7 @@ a) In VScode:
 b) From the command line:
 
 ```bash
-    python3 ./code/test.py --config "path_to_model_config_file.json" --resume "path_to_model_checkpoint_file.pkl")
+    python3 ./code/test.py --config "your_path_to_model_config_file.json" --resume "your_path_to_model_checkpoint_file.pkl")
 ```
 
 - Refer to the [Models](###Models) section for information
