@@ -133,5 +133,48 @@
                 "${file}"
             ]
         },
+        {
+            "name": "Train: VSCO2 BetaVAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/vsco2_betavae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json"
+            ]
+        },
+        {
+            "name": "Resume: VSCO2 BetaVAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/vsco2_betavae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json",
+                "--resume",
+                "${file}"
+            ]
+        },
+        {
+            "name": "Test: VSCO2 BetaVAE",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "${cwd}/code/config/models/vsco2_betavae_config.json",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json",
+                "--resume",
+                "${file}"
+            ]
+        },
     ]
 }

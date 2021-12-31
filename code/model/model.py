@@ -184,16 +184,16 @@ class VariationalEncoder(BaseModel):
         conv_size = np.prod(np.array(conv_out_dim))
 
         self._l_2 = nn.Sequential(
-            nn.Flatten(),
             nn.Linear(conv_size, 16),
             nn.ReLU()
         )
 
-        flat_out_shape = get_output_shape(self._l_2, conv_out_shape)
+        flat_out_shape = get_output_shape(self._l_2, (1, conv_size))
         self.sampler = sampler_fac(flat_out_shape, (1, latent_size))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         z_prob = self._l_1(x)
+        z_prob = torch.flatten(z_prob, start_dim=1)
         z_prob = self._l_2(z_prob)
         z = self.sampler(z_prob)
         return z

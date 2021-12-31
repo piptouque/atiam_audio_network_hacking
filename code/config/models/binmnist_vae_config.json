@@ -30,7 +30,7 @@
         "module": "data_loader",
         "type": "BinaryMnistDataLoader",
         "args":{
-            "data_dir": "data/",
+            "data_dir": "toy/",
             "batch_size": 128,
             "shuffle": true,
             "validation_split": 0.1,
