@@ -6,8 +6,10 @@ from typing import List, Tuple, Union
 
 import torch
 import torch.nn as nn
-import torchvision as vis
-import torchaudio as audio
+import torchaudio 
+torchaudio.USE_SOUNDFILE_LEGACY_INTERFACE = False
+torchaudio.set_audio_backend("soundfile")
+
 from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url
 from utils.download_util import extract_archive
@@ -48,8 +50,6 @@ class VSCO2(Dataset):
         root = Path(root)
         archive = os.path.basename(url)
         archive = root / archive
-
-
         self._path = root / folder_in_archive
         if download:
             if not os.path.isdir(self._path):
@@ -68,9 +68,9 @@ class VSCO2(Dataset):
         self._walker = sorted(file_paths)
 
     def _load_item(self, file_path: Path, path: str):
-        labels = path.parent.as_posix().split(sep='/')
+        labels = file_path.parent.as_posix().split(sep='/')
         # TODO: add key if it exists
-        waveform, sample_rate = torchaudio.load(path)
+        waveform, sample_rate = torchaudio.load(file_path)
         data = self.transform(waveform) if self.transform is not None else waveform
         return data, sample_rate, labels
 

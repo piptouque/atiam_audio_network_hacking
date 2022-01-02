@@ -1,5 +1,4 @@
-import os
-import re
+import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Union
 
@@ -29,7 +28,7 @@ class BinaryMnistDataLoader(BaseDataLoader):
         self.data_dir = data_dir
         trsfm = vis.transforms.Compose([
             vis.transforms.ToTensor(),
-            vis.transforms.Lambda(lambda x: x.round())  # to black and white
+            vis.transforms.Lambda(np.around)  # to black and white
         ])
         self.dataset = vis.datasets.MNIST(
             self.data_dir, train=training, download=True, transform=trsfm)
