@@ -1,6 +1,6 @@
 import importlib
 from datetime import datetime
-
+import distutils.version
 class TensorboardWriter():
     def __init__(self) -> None:
         self.writer = None

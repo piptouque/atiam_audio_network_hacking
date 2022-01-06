@@ -27,9 +27,7 @@ class Trainer(BaseTrainer):
         self.valid_data_loader = valid_data_loader
         self.do_validation = self.valid_data_loader is not None
 
-        self.schedulers = { }
-        if lr_scheduler is not None:
-            self.schedulers['lr'] = lr_scheduler
+        self.lr_scheduler = lr_scheduler
 
         self.log_step = int(np.sqrt(data_loader.batch_size))
 
@@ -85,17 +83,16 @@ class Trainer(BaseTrainer):
             val_log = self._valid_epoch(epoch)
             log.update(**{'val_'+k: v for k, v in val_log.items()})
         
-        for scheduler in self.schedulers.values():
-            scheduler.step()
+        self.lr_scheduler.step()
 
         self._post_epoch(epoch)
         
         return log
 
-    def _post_epoch(self, epoch) -> None:
+    def _post_epoch(self, epoch: int) -> None:
         pass
 
-    def _valid_epoch(self, epoch):
+    def _valid_epoch(self, epoch: int):
         """
         Validate after training an epoch
 
