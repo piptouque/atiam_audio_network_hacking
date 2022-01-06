@@ -241,7 +241,6 @@ class VariationalDecoder(BaseModel):
         return x_hat
         
 
-
 class Vae(BaseModel):
     def __init__(self, input_dim: Tuple[int, int, int], latent_size: int, e_sampler_fac: Callable[[Any], RandomSampler], d_sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()

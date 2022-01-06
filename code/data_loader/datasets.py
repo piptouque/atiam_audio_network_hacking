@@ -12,6 +12,9 @@ torchaudio.set_audio_backend("soundfile")
 
 from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url
+from torchaudio.datasets.yesno import _RELEASE_CONFIGS as _YESNO_RELEASE_CONFIGS
+from torchaudio.datasets import YESNO
+
 from utils.download_util import extract_archive
 
 _VSCO2_RELEASE_CONFIGS = {
@@ -67,12 +70,12 @@ class VSCO2(Dataset):
         file_paths = Path(self._path).rglob("*.wav")
         self._walker = sorted(file_paths)
 
-    def _load_item(self, file_path: Path, path: str):
+    def _load_item(self, file_path: Path):
         labels = file_path.parent.as_posix().split(sep='/')
         # TODO: add key if it exists
-        waveform, sample_rate = torchaudio.load(file_path)
-        data = self.transform(waveform) if self.transform is not None else waveform
-        return data, sample_rate, labels
+        waveform, sample_rate = torchaudio.load(file_path.as_posix())
+        audio = self.transform(waveform) if self.transform is not None else waveform
+        return (audio, sample_rate), labels
 
     def __getitem__(self, n: int) -> Tuple[torch.Tensor, int, List[int]]:
         """Load the n-th sample from the dataset.
@@ -89,3 +92,39 @@ class VSCO2(Dataset):
 
     def __len__(self) -> int:
         return len(self._walker)
+
+class YESNOPacked(Dataset):
+    """Same as YESNO but 
+    __getitem__ returns sampler rate packed with audio data in a tuple.
+    Also interfaced the same as VSCO2 for compatibility.
+
+    Args:
+        Dataset ([type]): [description]
+    """
+
+    def __init__(
+        self,
+        root: Union[str, Path],
+        transform: nn.Module = None,
+        folder_in_archive: str = _YESNO_RELEASE_CONFIGS["release1"]["folder_in_archive"],
+        url: str = _YESNO_RELEASE_CONFIGS["release1"]["url"],
+        download: bool = False
+    ) -> None:
+        self.transform = transform
+        self.dataset = YESNO(root, url, folder_in_archive, download)
+
+    def __getitem__(self, n: int) -> Tuple[torch.Tensor, int, List[int]]:
+        """Load the n-th sample from the dataset.
+
+        Args:
+            n (int): The index of the sample to be loaded
+
+        Returns:
+            (Tensor, int, List[int]): ``(waveform, sample_rate, labels)``
+        """
+        waveform, sr, labels = self.dataset[n]
+        audio = self.transform(waveform) if self.transform is not None else waveform
+        return (audio, sr), labels
+
+    def __len__(self) -> int:
+        return len(self.dataset)

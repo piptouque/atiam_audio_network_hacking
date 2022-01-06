@@ -73,7 +73,7 @@ b) From the command line:
 
 a) In VScode:
 
-    - Run (Ctrl+Shift+P) the `Python: Launch Tensorflow` command.
+    - Run (Ctrl+Shift+P) the `Python: Launch TensorBoard` command.
     - Select 'Use current working directory'.
     - The TensorBoard watcher should open in a new view. 
 
