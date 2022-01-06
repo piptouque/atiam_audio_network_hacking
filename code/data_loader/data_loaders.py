@@ -7,7 +7,7 @@ import torchvision as vis
 import torchaudio as audio
 
 from base import BaseDataLoader
-from .datasets import VSCO2
+from .datasets import VSCO2, YESNOPacked
 
 class MnistDataLoader(BaseDataLoader):
     """
@@ -39,7 +39,7 @@ class BinaryMnistDataLoader(BaseDataLoader):
 class YesNoSpeechDataLoader(BaseDataLoader):
     def __init__(self, data_dir: str, batch_size: int, transform=None, shuffle=True, validation_split=0.0, num_workers=1, training=True) -> None:
         self.data_dir = data_dir
-        self.dataset = audio.datasets.YesNoSpeechDataLoader(
+        self.dataset = YESNOPacked(
             self.data_dir, train=training, download=True, transform=transform)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
 
