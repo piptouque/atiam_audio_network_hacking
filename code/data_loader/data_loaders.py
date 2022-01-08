@@ -1,9 +1,8 @@
 import numpy as np
-from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Any
+import torch
 
 import torchvision as vis
-import torchaudio as audio
 
 from base import BaseDataLoader
 from .datasets import VSCO2, YESNOPacked
@@ -36,12 +35,19 @@ class BinaryMnistDataLoader(BaseDataLoader):
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
 
 
+def audio_collate_fn(data: List[Tuple[Any]]) -> Tuple[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
+        audio, sr, label = zip(*data)
+        audio = torch.tensor(audio)
+        sr = torch.tensor(sr)
+        label = torch.tensor(label)
+        return audio, sr, label
+
 class YesNoSpeechDataLoader(BaseDataLoader):
     def __init__(self, data_dir: str, batch_size: int, transform=None, shuffle=True, validation_split=0.0, num_workers=1, training=True) -> None:
         self.data_dir = data_dir
         self.dataset = YESNOPacked(
-            self.data_dir, train=training, download=True, transform=transform)
-        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+            self.data_dir, download=True, transform=transform)
+        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers, collate_fn=audio_collate_fn)
 
 
 class Vsco2DataLoader(BaseDataLoader):
@@ -49,4 +55,4 @@ class Vsco2DataLoader(BaseDataLoader):
         self.data_dir = data_dir
         self.dataset = VSCO2(
             self.data_dir, download=True, transform=transform)
-        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers, collate_fn=audio_collate_fn)

@@ -1,4 +1,5 @@
 import json
+import urllib
 import torch
 import torch.nn as nn
 import pandas as pd
@@ -6,8 +7,8 @@ from pathlib import Path
 from itertools import repeat
 from collections import OrderedDict
 
+
 from typing import Tuple, Union, Callable, Any
-import abc
 
 
 def get_output_shape(model: nn.Module, input_shape: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]:
@@ -15,6 +16,13 @@ def get_output_shape(model: nn.Module, input_shape: Tuple[int, int, int, int]) -
     # taken from: https://stackoverflow.com/a/62197038
     return model(torch.rand(*(input_shape))).data.shape
 
+
+def get_url_filename(url: str) -> str:
+    req = urllib.request.Request(url, method="HEAD")
+    req_info = urllib.request.urlopen(req).info()
+
+    # Detect filename
+    return req_info.get_filename()
 
 def ensure_dir(dirname):
     dirname = Path(dirname)

@@ -9,17 +9,22 @@ import torch.nn as nn
 import torchaudio
 
 from torch.utils.data import Dataset
-from torchvision.datasets.utils import download_url
-from torchaudio.datasets.yesno import _RELEASE_CONFIGS as _YESNO_RELEASE_CONFIGS
 from torchaudio.datasets import YESNO
-
-from utils.download_util import extract_archive
+from torchaudio.datasets.utils import download_url, extract_archive
+from torchaudio.datasets.yesno import _RELEASE_CONFIGS as _YESNO_RELEASE_CONFIGS
 
 _VSCO2_RELEASE_CONFIGS = {
-    "release1": {
-        "folder_in_archive": "waves_yesno",
-        "url": "https://github.com/sgossner/VSCO-2-CE/archive/refs/heads/master.zip",
-        "checksum": "c3f49e0cca421f96b75b41640749167b52118f232498667ca7a5f9416aef8e73",
+    "hardcore": {
+        "folder_in_archive": "VSCO2_hardcore",
+        "archive_name": "50OrchestralSamples.zip",
+        "url": "https://uc83fded2dd0e02e3c1b77154085.dl.dropboxusercontent.com/zip_download_get/BAxqx1PzWHqR-1JbJe10zyPjiur_6t1HXOZa7pQpFbybBIMNCMgtfdd9xjjmdpi4Ec3vkjH-NocLYmcq4i3SxqIpgaU1Amri6p53ixbY3UPoPA?_download_id=228461718975105252695810256925787335041281438952017275431986463752",
+        "checksum": None
+    },
+    "partial": {
+        "folder_in_archive": "VSCO2_partial",
+        "archive_name": "256OrchestralSamples.zip",
+        "url": "https://uc5ee82ae5da88cfddddd9b91de7.dl.dropboxusercontent.com/zip_download_get/BAzIicx7d8Ew39KmOaP__sjxd2ik_yzuPGaYVml_cq1Ie9G7uGmz8L0HcFCzzTOOEfokwJ44y9KLDjJQElfbw-Y4YrTd7WCejw9ZZGdkHvbpmQ?_download_id=144379115872197751745977629871310968943451386519978745509876583",
+        "checksum": None
     }
 }
 
@@ -41,25 +46,23 @@ class VSCO2(Dataset):
         self,
         root: Union[str, Path],
         transform: nn.Module = None,
-        folder_in_archive: str = _VSCO2_RELEASE_CONFIGS["release1"]["folder_in_archive"],
-        url: str = _VSCO2_RELEASE_CONFIGS["release1"]["url"],
+        cfg = _VSCO2_RELEASE_CONFIGS["hardcore"],
         download: bool = False
     ) -> None:
         self.transform = transform
-        self._parse_filesystem(root, url, folder_in_archive, download)
+        self._parse_filesystem(root, cfg, download)
 
-    def _parse_filesystem(self, root: str, url: str, folder_in_archive: str, download: bool) -> None:
+    def _parse_filesystem(self, root: str, cfg, download: bool) -> None:
         root = Path(root)
-        archive = os.path.basename(url)
-        archive = root / archive
+        folder_in_archive, url, checksum = cfg["folder_in_archive"], cfg["url"], cfg["checksum"]
+        archive_name = cfg["archive_name"]
+        archive = root / archive_name
         self._path = root / folder_in_archive
         if download:
             if not os.path.isdir(self._path):
                 if not os.path.isfile(archive):
-                    # checksum = _VSC02_RELEASE_CONFIGS["release1"]["checksum"]
-                    # download_url(url, root, hash_value=checksum)
-                    download_url(url, root)
-                extract_archive(archive)
+                    download_url(url, root, hash_value=checksum)
+                extract_archive(archive, self._path)
 
         if not os.path.isdir(self._path):
             raise RuntimeError(
@@ -75,7 +78,7 @@ class VSCO2(Dataset):
         waveform, sample_rate = torchaudio.load(file_path.as_posix())
         audio = self.transform(
             waveform) if self.transform is not None else waveform
-        return (audio, sample_rate), labels
+        return audio, sample_rate, labels
 
     def __getitem__(self, n: int) -> Tuple[torch.Tensor, int, List[int]]:
         """Load the n-th sample from the dataset.
@@ -87,7 +90,7 @@ class VSCO2(Dataset):
             (Tensor, int, List[int]): ``(waveform, sample_rate, labels)``
         """
         file_path = self._walker[n]
-        item = self._load_item(file_path, self._path)
+        item = self._load_item(file_path)
         return item
 
     def __len__(self) -> int:
@@ -96,8 +99,7 @@ class VSCO2(Dataset):
 
 class YESNOPacked(Dataset):
     """Same as YESNO but 
-    __getitem__ returns sampler rate packed with audio data in a tuple.
-    Also interfaced the same as VSCO2 for compatibility.
+    Interfaced the same as VSCO2 for compatibility.
 
     Args:
         Dataset ([type]): [description]
@@ -107,12 +109,11 @@ class YESNOPacked(Dataset):
         self,
         root: Union[str, Path],
         transform: nn.Module = None,
-        folder_in_archive: str = _YESNO_RELEASE_CONFIGS["release1"]["folder_in_archive"],
-        url: str = _YESNO_RELEASE_CONFIGS["release1"]["url"],
+        cfg = _YESNO_RELEASE_CONFIGS["release1"],
         download: bool = False
     ) -> None:
         self.transform = transform
-        self.dataset = YESNO(root, url, folder_in_archive, download)
+        self.dataset = YESNO(root, cfg["url"], cfg["folder_in_archive"], download)
 
     def __getitem__(self, n: int) -> Tuple[torch.Tensor, int, List[int]]:
         """Load the n-th sample from the dataset.
@@ -126,7 +127,7 @@ class YESNOPacked(Dataset):
         waveform, sr, labels = self.dataset[n]
         audio = self.transform(
             waveform) if self.transform is not None else waveform
-        return (audio, sr), labels
+        return audio, sr, labels
 
     def __len__(self) -> int:
         return len(self.dataset)
