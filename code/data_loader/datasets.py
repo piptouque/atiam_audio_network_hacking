@@ -7,8 +7,6 @@ from typing import List, Tuple, Union
 import torch
 import torch.nn as nn
 import torchaudio 
-torchaudio.USE_SOUNDFILE_LEGACY_INTERFACE = False
-torchaudio.set_audio_backend("soundfile")
 
 from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url

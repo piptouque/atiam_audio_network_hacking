@@ -36,7 +36,7 @@
 
         conda env create -f ./[env_for_your_os.yml]
 
-    This will create a new Conda environment named `env_ml`.
+    This will create a new Conda environment named `env_anh`.
     It should have include all required packages for everything to run.
 
 2) Activate the environment:
@@ -44,15 +44,14 @@
     a) In VScode:
 
     - Run (Ctrl+Shift+P) the `Python: Select Interpreter` command.
-    - Select the python path matching `env_ml`.
+    - Select the python path matching `env_anh`.
     You may need to refresh the interpreter list 
 
 ![vscoder_interpreter](./doc/resources/images/vscode_interpreter.png)
 
     b) from the command line
 
-        conda activate env_ml
-
+        conda activate env_anh
 ### Training
 
 a) In VScode:
