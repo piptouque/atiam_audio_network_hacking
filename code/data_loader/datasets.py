@@ -6,7 +6,7 @@ from typing import List, Tuple, Union
 
 import torch
 import torch.nn as nn
-import torchaudio 
+import torchaudio
 
 from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url
@@ -22,6 +22,7 @@ _VSCO2_RELEASE_CONFIGS = {
         "checksum": "c3f49e0cca421f96b75b41640749167b52118f232498667ca7a5f9416aef8e73",
     }
 }
+
 
 class VSCO2(Dataset):
     """Create a Dataset for VSCO2.
@@ -72,7 +73,8 @@ class VSCO2(Dataset):
         labels = file_path.parent.as_posix().split(sep='/')
         # TODO: add key if it exists
         waveform, sample_rate = torchaudio.load(file_path.as_posix())
-        audio = self.transform(waveform) if self.transform is not None else waveform
+        audio = self.transform(
+            waveform) if self.transform is not None else waveform
         return (audio, sample_rate), labels
 
     def __getitem__(self, n: int) -> Tuple[torch.Tensor, int, List[int]]:
@@ -90,6 +92,7 @@ class VSCO2(Dataset):
 
     def __len__(self) -> int:
         return len(self._walker)
+
 
 class YESNOPacked(Dataset):
     """Same as YESNO but 
@@ -121,7 +124,8 @@ class YESNOPacked(Dataset):
             (Tensor, int, List[int]): ``(waveform, sample_rate, labels)``
         """
         waveform, sr, labels = self.dataset[n]
-        audio = self.transform(waveform) if self.transform is not None else waveform
+        audio = self.transform(
+            waveform) if self.transform is not None else waveform
         return (audio, sr), labels
 
     def __len__(self) -> int:

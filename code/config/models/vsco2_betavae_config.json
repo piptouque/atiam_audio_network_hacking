@@ -2,20 +2,22 @@
     "version": 5,
     "name": "Mnist_BetaVae",
     "n_gpu": 1,
-
     "arch": {
         "handle": "obj",
         "module": "model",
         "type": "BetaVae",
         "args": {
-            "input_dim": [1, 28, 28],
+            "input_dim": [
+                1,
+                28,
+                28
+            ],
             "latent_size": 2,
             "e_sampler_fac": {
                 "handle": "ftn",
                 "module": "model",
                 "type": "GaussianRandomSampler",
-                "args": {
-                }
+                "args": {}
             },
             "d_sampler_fac": {
                 "handle": "ftn",
@@ -33,7 +35,10 @@
                     "step_size": 50,
                     "gamma": 0.1,
                     "init_val": 0,
-                    "bounds": [0, 1000]
+                    "bounds": [
+                        0,
+                        1000
+                    ]
                 }
             }
         }
@@ -41,7 +46,7 @@
     "data_loader": {
         "module": "data_loader",
         "type": "Vsco2DataLoader",
-        "args":{
+        "args": {
             "data_dir": "toy/",
             "batch_size": 128,
             "shuffle": true,
@@ -62,9 +67,12 @@
     "optimizer": {
         "module": "torch.optim",
         "type": "Adam",
-        "args":{
+        "args": {
             "lr": 0.001,
-            "betas": [0.9, 0.999],
+            "betas": [
+                0.9,
+                0.999
+            ],
             "eps": 1e-07,
             "weight_decay": 0,
             "amsgrad": false
@@ -73,26 +81,22 @@
     "loss": {
         "module": "loss",
         "type": "beta_vae_total_loss",
-        "args": {
-        }
+        "args": {}
     },
     "metrics": [
         {
             "module": "metric",
             "type": "vae_reconstruction_loss",
-            "args": {
-
-            }
-        }, {
+            "args": {}
+        },
+        {
             "module": "metric",
             "type": "vae_divergence_loss",
-            "args": {
-
-            }
+            "args": {}
         }
     ],
     "lr_scheduler": {
-            "module": "torch.optim.lr_scheduler",
+        "module": "torch.optim.lr_scheduler",
         "type": "StepLR",
         "args": {
             "step_size": 50,
@@ -102,24 +106,18 @@
     "trainer": {
         "module": "trainer",
         "type": "BetaVaeTrainer",
-        "args": {
-
-        }
+        "args": {}
     },
     "visualizer": {
         "module": "visualizer",
         "type": "VaeVisualizer",
-        "args": {
-
-        }
+        "args": {}
     },
     "training": {
         "epochs": 40,
-
         "save_dir": "saved_models/",
         "save_period": 1,
         "verbosity": 2,
-        
         "monitor": "min val_loss",
         "early_stop": 10
     },
@@ -127,10 +125,22 @@
         "tensorboard": true,
         "sampled_latent": {
             "plot": true,
-            "nb_points": [32, 32],
-            "range": [[-2, 2], [-2, 2]]
+            "nb_points": [
+                32,
+                32
+            ],
+            "range": [
+                [
+                    -2,
+                    2
+                ],
+                [
+                    -2,
+                    2
+                ]
+            ]
         },
-        "clusters_latent" : {
+        "clusters_latent": {
             "plot": true,
             "nb_points": 5000
         }

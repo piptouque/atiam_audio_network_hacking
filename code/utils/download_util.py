@@ -21,6 +21,7 @@ from torch.utils.model_zoo import tqdm
 
 USER_AGENT = "pytorch/vision"
 
+
 def _extract_tar(from_path: str, to_path: str, compression: Optional[str]) -> None:
     with tarfile.open(from_path, f"r:{compression[1:]}" if compression else "r") as tar:
         tar.extractall(to_path)
@@ -94,8 +95,10 @@ def _detect_file_type(file: str) -> Tuple[str, Optional[str], Optional[str]]:
 
         return suffix, None, suffix
 
-    valid_suffixes = sorted(set(_FILE_TYPE_ALIASES) | set(_ARCHIVE_EXTRACTORS) | set(_COMPRESSED_FILE_OPENERS))
-    raise RuntimeError(f"Unknown compression or archive type: '{suffix}'.\nKnown suffixes are: '{valid_suffixes}'.")
+    valid_suffixes = sorted(set(_FILE_TYPE_ALIASES) | set(
+        _ARCHIVE_EXTRACTORS) | set(_COMPRESSED_FILE_OPENERS))
+    raise RuntimeError(
+        f"Unknown compression or archive type: '{suffix}'.\nKnown suffixes are: '{valid_suffixes}'.")
 
 
 def _decompress(from_path: str, to_path: Optional[str] = None, remove_finished: bool = False) -> str:
@@ -113,10 +116,12 @@ def _decompress(from_path: str, to_path: Optional[str] = None, remove_finished: 
     """
     suffix, archive_type, compression = _detect_file_type(from_path)
     if not compression:
-        raise RuntimeError(f"Couldn't detect a compression from suffix {suffix}.")
+        raise RuntimeError(
+            f"Couldn't detect a compression from suffix {suffix}.")
 
     if to_path is None:
-        to_path = from_path.replace(suffix, archive_type if archive_type is not None else "")
+        to_path = from_path.replace(
+            suffix, archive_type if archive_type is not None else "")
 
     # We don't need to check for a missing key here, since this was already done in _detect_file_type()
     compressed_file_opener = _COMPRESSED_FILE_OPENERS[compression]
@@ -152,7 +157,8 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, remove_finish
     if not archive_type:
         return _decompress(
             from_path,
-            os.path.join(to_path, os.path.basename(from_path).replace(suffix, "")),
+            os.path.join(to_path, os.path.basename(
+                from_path).replace(suffix, "")),
             remove_finished=remove_finished,
         )
 
@@ -195,7 +201,8 @@ def verify_str_arg(
             msg = custom_msg
         else:
             msg = "Unknown value '{value}' for argument {arg}. Valid values are {{{valid_values}}}."
-            msg = msg.format(value=value, arg=arg, valid_values=iterable_to_str(valid_values))
+            msg = msg.format(value=value, arg=arg,
+                             valid_values=iterable_to_str(valid_values))
         raise ValueError(msg)
 
     return value

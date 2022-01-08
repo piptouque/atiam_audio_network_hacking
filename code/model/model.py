@@ -13,14 +13,15 @@ vae_cfg = {
     'conv_config': {
         'kernel_size': 3,
         'stride': 2,
-        #'padding': 'same'
+        # 'padding': 'same'
     },
     'deconv_config': {
         'kernel_size': 3,
         'stride': 2,
-        #'output_padding': ''
+        # 'output_padding': ''
     }
 }
+
 
 class ConvUtil:
     """
@@ -32,20 +33,25 @@ class ConvUtil:
     @staticmethod
     def conv_padding_same(i: int, k: int, s: int, d: int) -> int:
         return np.max((np.ceil(i / s) - 1) * s + (k - 1) * d + 1 - i, 0).astype(int)
+
     def deconv_padding_same(i: int, k: int, s: int, d: int, p_o: int) -> int:
         pad = np.max((k - 1) * d + 1 + p_o - s, 0).astype(int)
         return pad
+
 
 class Conv2dSame(nn.Conv2d):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         ih, iw = x.size()[-2:]
 
-        pad_h = ConvUtil.conv_padding_same(i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0])
-        pad_w = ConvUtil.conv_padding_same(i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1])
+        pad_h = ConvUtil.conv_padding_same(
+            i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0])
+        pad_w = ConvUtil.conv_padding_same(
+            i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1])
 
         if pad_h > 0 or pad_w > 0:
             x = func.pad(
-                x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2]
+                x, [pad_w // 2, pad_w - pad_w // 2,
+                    pad_h // 2, pad_h - pad_h // 2]
             )
         return func.conv2d(
             x,
@@ -57,13 +63,17 @@ class Conv2dSame(nn.Conv2d):
             groups=self.groups,
         )
 
+
 class ConvTranspose2dSame(nn.ConvTranspose2d):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         ih, iw = x.size()[-2:]
 
-        pad_null = tuple(self.dilation*(np.array(self.kernel_size, dtype=int) - 1)//2)
-        pad_h = ConvUtil.deconv_padding_same(i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0], p_o=self.output_padding[0])
-        pad_w = ConvUtil.deconv_padding_same(i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1], p_o=self.output_padding[1])
+        pad_null = tuple(
+            self.dilation*(np.array(self.kernel_size, dtype=int) - 1)//2)
+        pad_h = ConvUtil.deconv_padding_same(
+            i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0], p_o=self.output_padding[0])
+        pad_w = ConvUtil.deconv_padding_same(
+            i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1], p_o=self.output_padding[1])
 
         x_conv = func.conv_transpose2d(
             x,
@@ -84,11 +94,12 @@ class RandomSampler(BaseModel):
         self._input_dim = tuple(input_dim)
         self._output_dim = tuple(output_dim)
         self._prior_distrib = prior_distrib
-        self.input_last  = None
+        self.input_last = None
+
         def hook(module: RandomSampler, args: Tuple[torch.Tensor]) -> None:
             self.input_last = args[0]
         self.register_forward_pre_hook(hook)
-        
+
     @abc.abstractmethod
     def log_likelihood(self, target: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError()
@@ -102,6 +113,7 @@ class GaussianRandomSampler(RandomSampler):
     Actually only works with a Gaussian distribution
     see:   Kingma, Diederik P., et Max Welling. « Auto-Encoding Variational Bayes ». ArXiv:1312.6114 [Cs, Stat], 1 mai 2014. http://arxiv.org/abs/1312.6114.
     """
+
     def __init__(self, input_dim: Tuple[int, int, int], output_dim: Tuple[int, int, int], fixed_var: Union[None, torch.Tensor] = None) -> None:
         super().__init__(input_dim, output_dim, torch.distributions.Normal(0, 1))
         self._l_1 = nn.Sequential(
@@ -109,8 +121,9 @@ class GaussianRandomSampler(RandomSampler):
             nn.Tanh(),
         )
         self._l_mean = nn.Linear(self._input_dim[-1], self._output_dim[-1])
-        if fixed_var is None: 
-            self._l_logscale = nn.Linear(self._input_dim[-1], self._output_dim[-1])
+        if fixed_var is None:
+            self._l_logscale = nn.Linear(
+                self._input_dim[-1], self._output_dim[-1])
         else:
             self._l_logscale = lambda _: torch.log(torch.tensor(fixed_var))
 
@@ -138,7 +151,7 @@ class GaussianRandomSampler(RandomSampler):
             torch.Tensor: [description]
         """
         out_mean, out_scale = self._l_moments(input_last)
-        return  - ((x - out_mean) ** 2 / (2 * out_scale **2) + torch.log(out_scale) + np.log(np.sqrt(2*np.pi)))
+        return - ((x - out_mean) ** 2 / (2 * out_scale ** 2) + torch.log(out_scale) + np.log(np.sqrt(2*np.pi)))
 
 
 class BernoulliRandomSampler(RandomSampler):
@@ -146,6 +159,7 @@ class BernoulliRandomSampler(RandomSampler):
     The prior and posterior are still gaussian.
     Used as a decoder when the input data (and so, output data) is binary.
     """
+
     def __init__(self, input_dim: Tuple[int, int, int], output_dim: Tuple[int, int, int]) -> None:
         super().__init__(input_dim, output_dim, torch.distributions.Bernoulli(probs=0.5))
         self._l_probs = nn.Sequential(
@@ -154,7 +168,7 @@ class BernoulliRandomSampler(RandomSampler):
             nn.Linear(self._output_dim[-1], self._output_dim[-1]),
             nn.Sigmoid()
         )
-    
+
     def forward(self, y: torch.Tensor) -> torch.Tensor:
         probs = self._l_probs(y)
         z = torch.bernoulli(probs)
@@ -166,14 +180,16 @@ class BernoulliRandomSampler(RandomSampler):
         log_probs = - func.binary_cross_entropy(probs, x, reduction='none')
         return log_probs
 
-# references: 
+# references:
 # https://keras.io/examples/generative/vae/
-# https://avandekleut.github.io/vae/ 
+# https://avandekleut.github.io/vae/
+
+
 class VariationalEncoder(BaseModel):
     def __init__(self, input_dim: Tuple[int, int, int], latent_size: int, sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
         self._l_1 = nn.Sequential(
-            Conv2dSame(input_dim[0], 32,**vae_cfg['conv_config']),
+            Conv2dSame(input_dim[0], 32, **vae_cfg['conv_config']),
             nn.ReLU(),
             Conv2dSame(32, 64, **vae_cfg['conv_config']),
             nn.ReLU()
@@ -205,13 +221,14 @@ class VariationalDecoder(BaseModel):
     Args:
         BaseModel ([type]): [description]
     """
+
     def __init__(self, output_dim: Tuple[int, int, int], latent_size: int, sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
         self._input_conv_dim = np.array(output_dim)
         #
         # infer reduced height and width
         stride = vae_cfg['conv_config']['stride']
-        self._input_conv_dim[-2:]= self._input_conv_dim[-2:]//stride**2
+        self._input_conv_dim[-2:] = self._input_conv_dim[-2:]//stride**2
         # channel
         self._input_conv_dim[0] = self._input_conv_dim[0] * 64
         #
@@ -235,17 +252,20 @@ class VariationalDecoder(BaseModel):
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         x_prob = self._l_1(z)
-        x_prob = torch.reshape(x_prob, (z.shape[0],) + tuple(self._input_conv_dim))
+        x_prob = torch.reshape(
+            x_prob, (z.shape[0],) + tuple(self._input_conv_dim))
         x_prob = self._l_2(x_prob)
         x_hat = self.sampler(x_prob)
         return x_hat
-        
+
 
 class Vae(BaseModel):
     def __init__(self, input_dim: Tuple[int, int, int], latent_size: int, e_sampler_fac: Callable[[Any], RandomSampler], d_sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
-        self.encoder = VariationalEncoder(input_dim, latent_size, sampler_fac=e_sampler_fac)
-        self.decoder = VariationalDecoder(input_dim, latent_size, sampler_fac=d_sampler_fac)
+        self.encoder = VariationalEncoder(
+            input_dim, latent_size, sampler_fac=e_sampler_fac)
+        self.decoder = VariationalDecoder(
+            input_dim, latent_size, sampler_fac=d_sampler_fac)
         self.latent_size = latent_size
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -253,11 +273,13 @@ class Vae(BaseModel):
         x_hat = self.decoder(z)
         return x_hat
 
+
 class BetaScheduler:
     """
     Inspired by: https://pytorch.org/docs/stable/_modules/torch/optim/lr_scheduler.html#StepLR
     """
-    def __init__(self, init_val: float, step_size: int, gamma: float, bounds: Tuple[float, float], last_epoch: int=-1) -> None:
+
+    def __init__(self, init_val: float, step_size: int, gamma: float, bounds: Tuple[float, float], last_epoch: int = -1) -> None:
         self.last_epoch = last_epoch
         self.step_size = int(step_size)
         self.gamma = gamma
@@ -269,12 +291,13 @@ class BetaScheduler:
         if self.last_epoch < 0:
             return self.init_val
         else:
-            val = self.init_val * (1 + self.gamma * (self.last_epoch // self.step_size))
+            val = self.init_val * \
+                (1 + self.gamma * (self.last_epoch // self.step_size))
             return min(self.bounds[1], max(self.bounds[0], val))
 
     def step(self, epoch: int) -> None:
         self.last_epoch = int(epoch)
-    
+
 
 class BetaVae(Vae):
     def __init__(self, input_dim: Tuple[int, int, int], latent_size: int, e_sampler_fac: Callable[[Any], RandomSampler], d_sampler_fac: Callable[[Any], RandomSampler], beta_scheduler: BetaScheduler) -> None:
@@ -284,6 +307,7 @@ class BetaVae(Vae):
     @property
     def beta(self) -> float:
         return self.beta_scheduler.get_value()
+
 
 class MnistModel(BaseModel):
     def __init__(self, num_classes=10):

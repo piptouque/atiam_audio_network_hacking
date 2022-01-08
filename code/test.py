@@ -27,7 +27,8 @@ def main(config):
 
     # get function handles of loss and metrics
     criterion = config.init_ftn('loss', module_loss)
-    metric_fns = [config.init_ftn(['metrics', i], module_metric) for i in range(len(config['metrics']))]
+    metric_fns = [config.init_ftn(['metrics', i], module_metric)
+                  for i in range(len(config['metrics']))]
 
     logger.info('Loading checkpoint: {} ...'.format(config.resume))
     checkpoint = torch.load(config.resume)
@@ -49,7 +50,7 @@ def main(config):
             data, label = data.to(device), label.to(device)
             # DIRTY HACK: will only use unsupervised models so here using unsupervised loss
             # TODO: implement a Tester, to mimicking Trainer? Or find some unifying logic (copy TensorFlow)
-            choose_target = lambda data, label: data
+            def choose_target(data, label): return data
             target = choose_target(data, label)
 
             output = model(data)

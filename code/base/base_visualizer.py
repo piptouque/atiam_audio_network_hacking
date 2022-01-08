@@ -8,8 +8,9 @@ from base import BaseModel, BaseDataLoader
 class BaseVisualizer:
     """[summary]
     """
+
     def __init__(self) -> None:
-        # setup visualization writer instance                
+        # setup visualization writer instance
         self.writer = TensorboardWriter()
         self.vis_cfg = None
 

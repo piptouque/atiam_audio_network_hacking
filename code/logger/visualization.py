@@ -17,6 +17,7 @@ class Visualizer(BaseVisualizer):
     Args:
         BaseVisualizer ([type]): [description]
     """
+
     def log_batch_train(self, model: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
         self.writer.add_image('input', torchvision.utils.make_grid(
             data.cpu(), nrow=8, normalize=True))
@@ -32,16 +33,20 @@ class Visualizer(BaseVisualizer):
         # add histogram of model parameters to the tensorboard
         for name, p in model.named_parameters():
             self.writer.add_histogram(name, p, bins='auto')
+
+
 class UnsupervisedVisualizer(Visualizer):
     """[summary]
 
     Args:
         BaseVisualizer ([type]): [description]
     """
+
     def log_batch_train(self, model: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable):
         super().log_batch_train(model, epoch, batch_idx, data, output, label, loss)
         self.writer.add_image('output', torchvision.utils.make_grid(
             output.cpu(), nrow=8, normalize=True))
+
 
 class VaeVisualizer(UnsupervisedVisualizer):
     """[summary]
@@ -94,7 +99,8 @@ class VaeVisualizer(UnsupervisedVisualizer):
             z_1 = np.linspace(lims[0][0], lims[0][1], nb_points[0])
             z_2 = np.linspace(lims[1][0], lims[1][1], nb_points[1])[::-1]
             zz_1, zz_2 = np.meshgrid(z_1, z_2)
-            z = torch.cat((torch.tensor(zz_1[..., np.newaxis], dtype=torch.float), torch.tensor(zz_2[..., np.newaxis], dtype=torch.float)), -1)
+            z = torch.cat((torch.tensor(zz_1[..., np.newaxis], dtype=torch.float), torch.tensor(
+                zz_2[..., np.newaxis], dtype=torch.float)), -1)
             z = torch.flatten(z, start_dim=0, end_dim=-2)
             x_hat = model.decoder(z)
             return x_hat
