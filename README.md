@@ -32,11 +32,12 @@
 - Checkpoint directory: `saved_models/models/{model_name}/`
 ### Set-up
 
-1) Create Conda environment if necessary:
+1) Create a Conda virtual environment if necessary:
 
-        conda env create -f code/environment.yml
+        conda env create -f ./[env_for_your_os.yml]
 
     This will create a new Conda environment named `env_ml`.
+    It should have include all required packages for everything to run.
 
 2) Activate the environment:
 
