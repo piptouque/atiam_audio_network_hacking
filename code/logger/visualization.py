@@ -77,6 +77,25 @@ class VaeVisualizer(UnsupervisedVisualizer):
             fig.colorbar(coll)
             self.writer.add_figure('clusters_latent', fig)
             plt.close(fig)
+        self._log_new_digits(model, epoch, data_loader)
+
+
+
+    def _log_new_digits(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
+        data, _ = next(iter(data_loader))
+        nb_points = 4
+        nb_iter = 10
+        shape = (nb_points,) + data.shape[1:]
+        x_i = torch.rand(shape, dtype=data.dtype)
+        x = [x_i]
+        for i in range(nb_iter):
+            x_i = model(x_i)
+            x.append(x_i)
+        x = torch.cat(x, dim=0)
+        self.writer.add_image('new_digits', torchvision.utils.make_grid(
+                x.cpu(), nrow=nb_points, normalize=True))
+
+
 
     def _sample_latent(self, model: Vae, lims: Tuple[Tuple[int, int], Tuple[int, int]], nb_points: Tuple[int, int]) -> torch.Tensor:
         """Get a tensor of images
