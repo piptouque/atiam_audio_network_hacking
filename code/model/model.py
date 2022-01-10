@@ -10,71 +10,6 @@ from utils import get_output_shape
 from base import BaseModel
 
 
-class ConvUtil:
-    """
-    'same' padding currently requires 'stride'==1 in PyTorch
-    see: https://github.com/pytorch/pytorch/issues/67551
-    So using this work-around to model TensorFlow behaviour
-    from: https://github.com/pytorch/pytorch/issues/67551#issuecomment-954972351
-    """
-    @staticmethod
-    def conv_padding_same(i: int, k: int, s: int, d: int) -> int:
-        return np.max((np.ceil(i / s) - 1) * s + (k - 1) * d + 1 - i, 0).astype(int)
-
-    def deconv_padding_same(i: int, k: int, s: int, d: int, p_o: int) -> int:
-        pad = np.max((k - 1) * d + 1 + p_o - s, 0).astype(int)
-        return pad
-
-
-class Conv2dSame(nn.Conv2d):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        ih, iw = x.size()[-2:]
-
-        pad_h = ConvUtil.conv_padding_same(
-            i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0])
-        pad_w = ConvUtil.conv_padding_same(
-            i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1])
-
-        if pad_h > 0 or pad_w > 0:
-            x = func.pad(
-                x, [pad_w // 2, pad_w - pad_w // 2,
-                    pad_h // 2, pad_h - pad_h // 2]
-            )
-        return func.conv2d(
-            x,
-            self.weight,
-            bias=self.bias,
-            stride=self.stride,
-            padding=0,
-            dilation=self.dilation,
-            groups=self.groups,
-        )
-
-
-class ConvTranspose2dSame(nn.ConvTranspose2d):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        ih, iw = x.size()[-2:]
-
-        pad_null = tuple(
-            self.dilation*(np.array(self.kernel_size, dtype=int) - 1)//2)
-        pad_h = ConvUtil.deconv_padding_same(
-            i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0], p_o=self.output_padding[0])
-        pad_w = ConvUtil.deconv_padding_same(
-            i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1], p_o=self.output_padding[1])
-
-        x_conv = func.conv_transpose2d(
-            x,
-            self.weight,
-            bias=self.bias,
-            stride=self.stride,
-            padding=pad_null,
-            dilation=self.dilation,
-            groups=self.groups,
-            output_padding=(pad_h, pad_w)
-        )
-        return x_conv
-
-
 class RandomSampler(BaseModel):
     def __init__(self, input_size: int, output_size: int, prior_distrib: torch.distributions.Distribution) -> None:
         super().__init__()
@@ -234,8 +169,6 @@ class VariationalDecoder(BaseModel):
             nn.ReLU(),
             nn.ConvTranspose2d(32, output_dim[0], **conv_cfg),
             nn.ReLU(),
-            # fix: Getting back to the right (H, W) dimensions
-            # nn.ConvTranspos2dSame(output_dim[0], output_dim[0], kernel_size=vae_config['conv_config']['kernel_size']),
             nn.Flatten()
         )
 
