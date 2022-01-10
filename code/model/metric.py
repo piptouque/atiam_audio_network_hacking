@@ -34,9 +34,9 @@ def vae_reconstruction_loss(_output: torch.Tensor, target: torch.Tensor, model: 
     # dim = tuple(np.arange(-target.ndim + 1, 0))
     # first sum over each sample in the batch
     # then average over the batch.
-    loss = - \
-        model.decoder.sampler.log_likelihood(
-            target, model.decoder.sampler.input_last)
+    target_flat = torch.flatten(target, start_dim=1)
+    loss = - model.decoder.sampler.log_likelihood(
+        target_flat, model.decoder.sampler.input_last)
     dim = tuple(np.arange(1, loss.dim()))
     loss = loss.sum(dim=dim).mean()
     return loss

@@ -13,6 +13,10 @@
                 28
             ],
             "latent_size": 2,
+            "conv_cfg": {
+                "kernel_size": 5,
+                "stride": 2
+            },
             "e_sampler_fac": {
                 "handle": "ftn",
                 "module": "model",
@@ -24,7 +28,7 @@
                 "module": "model",
                 "type": "GaussianRandomSampler",
                 "args": {
-                    "fixed_var": 1.0
+                    "fixed_var": 0.01
                 }
             }
         }

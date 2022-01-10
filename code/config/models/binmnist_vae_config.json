@@ -13,6 +13,10 @@
                 28
             ],
             "latent_size": 2,
+            "conv_cfg": {
+                "kernel_size": 3,
+                "stride": 2
+            },
             "e_sampler_fac": {
                 "handle": "ftn",
                 "module": "model",
