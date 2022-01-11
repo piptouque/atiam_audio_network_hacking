@@ -8,6 +8,7 @@ from typing import Tuple
 # tofix: why do I need to use base.base_visualizer instead of just base?
 from base.base_visualizer import BaseVisualizer
 from base import BaseDataLoader, BaseModel
+from data_loader.data_loaders import BinaryFashionMnistDataLoader
 from model import Vae
 
 
@@ -50,6 +51,11 @@ class VaeVisualizer(UnsupervisedVisualizer):
         UnsupervisedVisualizer ([type]): [description]
     """
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.batch_size = 8
+        self.symbols_loader = BinaryFashionMnistDataLoader("./", self.batch_size, training=False)
+
     def log_batch_train(self, model: Vae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
         super().log_batch_train(model, epoch, batch_idx, data, output, label, loss)
         s_cfg = self.vis_cfg['sampled_latent']
@@ -78,7 +84,7 @@ class VaeVisualizer(UnsupervisedVisualizer):
             self.writer.add_figure('clusters_latent', fig)
             plt.close(fig)
         self._log_new_digits(model, epoch, data_loader)
-
+        self._log_new_digits_from_symbols(model, epoch, data_loader)
 
 
     def _log_new_digits(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
@@ -88,13 +94,25 @@ class VaeVisualizer(UnsupervisedVisualizer):
         shape = (nb_points,) + data.shape[1:]
         x_i = torch.rand(shape, dtype=data.dtype)
         x = [x_i]
-        for i in range(nb_iter):
+        for i in range(nb_iter-1):
             x_i = model(x_i)
             x.append(x_i)
         x = torch.cat(x, dim=0)
         self.writer.add_image('new_digits', torchvision.utils.make_grid(
                 x.cpu(), nrow=nb_points, normalize=True))
 
+
+    def _log_new_digits_from_symbols(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
+        nb_iter = 10
+        x = []
+        x_j, _ = next(iter(self.symbols_loader))
+        x.append(x_j)
+        for j in range(nb_iter-1):
+            x_j = model(x_j)
+            x.append(x_j)
+        x = torch.cat(x, dim=0)
+        self.writer.add_image('new_digits_from_symbols', torchvision.utils.make_grid(
+                        x.cpu(), nrow=self.batch_size, normalize=True))
 
 
     def _sample_latent(self, model: Vae, lims: Tuple[Tuple[int, int], Tuple[int, int]], nb_points: Tuple[int, int]) -> torch.Tensor:
