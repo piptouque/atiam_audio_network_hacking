@@ -176,5 +176,20 @@
                 "${file}"
             ]
         },
+        {
+            "name": "Train: MNIST Adversarial",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/code/train_adversarial.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--dis_config",
+                "${cwd}/code/config/models/mnist_classifier_config.json",
+                "--gen_resume",
+                "${file}",
+                "--log",
+                "${cwd}/code/config/logger/logger_config.json"
+            ]
+        }
     ]
 }

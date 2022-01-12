@@ -1,0 +1,85 @@
+{
+    "version": 5,
+    "name": "Mnist_Classifier",
+    "n_gpu": 1,
+    "arch": {
+        "handle": "obj",
+        "module": "model",
+        "type": "MnistClassifier",
+        "args": {
+            "num_classes": 10
+        }
+    },
+    "data_loader": {
+        "module": "data_loader",
+        "type": "MnistDataLoader",
+        "args": {
+            "data_dir": "toy/",
+            "batch_size": 128,
+            "shuffle": true,
+            "validation_split": 0.1,
+            "num_workers": 2
+        }
+    },
+    "optimizer": {
+        "module": "torch.optim",
+        "type": "Adam",
+        "args": {
+            "lr": 0.001,
+            "betas": [
+                0.9,
+                0.999
+            ],
+            "eps": 1e-07,
+            "weight_decay": 0,
+            "amsgrad": false
+        }
+    },
+    "loss": {
+        "module": "loss",
+        "type": "nll_loss",
+        "args": {}
+    },
+    "metrics": [
+        {
+            "module": "metric",
+            "type": "accuracy",
+            "args": {}
+        },
+        {
+            "module": "metric",
+            "type": "top_k_acc",
+            "args": {}
+        }
+    ],
+    "lr_scheduler": {
+        "module": "torch.optim.lr_scheduler",
+        "type": "StepLR",
+        "args": {
+            "step_size": 50,
+            "gamma": 0.1
+        }
+    },
+    "trainer": {
+        "module": "trainer",
+        "type": "Trainer",
+        "args": {}
+    },
+    "visualizer": {
+        "module": "visualizer",
+        "type": "Visualizer",
+        "args": {}
+    },
+    "training": {
+        "epochs": 40,
+        "save_dir": "saved_models/",
+        "save_period": 1,
+        "verbosity": 2,
+        "monitor": "min val_loss",
+        "early_stop": 10
+    },
+    "visualization": {
+        "tensorboard": true,
+        "sampled_latent": {}
+    }
+}

@@ -1,6 +1,7 @@
 import os
 import logging
 import importlib
+from argparse import Namespace
 from pathlib import Path
 from functools import reduce, partial
 from operator import getitem
@@ -58,7 +59,7 @@ class ConfigParser:
         """
         for opt in options:
             args.add_argument(*opt.flags, default=None, type=opt.type)
-        if not isinstance(args, tuple):
+        if not isinstance(args, tuple) and not isinstance(args, Namespace):
             args = args.parse_args()
 
         if args.device is not None:
@@ -73,7 +74,7 @@ class ConfigParser:
             cfg_fname = Path(args.config)
 
         config = read_json(cfg_fname)
-        if args.config and resume:
+        if hasattr(args, 'config') and resume:
             # update new config for fine-tuning
             config.update(read_json(args.config))
         log_config = None

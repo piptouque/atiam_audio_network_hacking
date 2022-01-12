@@ -25,11 +25,6 @@ def top_k_acc(output: torch.Tensor, target: torch.Tensor, _model: nn.Module, dim
     return correct / len(target)
 
 
-@torch.no_grad()
-def accuracy_gen(output: torch.Tensor, target: torch.Tensor, dim: int = 1) -> float:
-    return func.nll_loss(output, target)
-
-
 def vae_reconstruction_loss(_output: torch.Tensor, target: torch.Tensor, model: Vae) -> Variable:
     # dim = tuple(np.arange(-target.ndim + 1, 0))
     # first sum over each sample in the batch

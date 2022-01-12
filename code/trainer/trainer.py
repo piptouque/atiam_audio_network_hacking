@@ -41,6 +41,9 @@ class Trainer(BaseTrainer):
     def _choose_target(self, data: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
         return label
 
+    def _forward_model(self, data: torch.Tensor) -> torch.Tensor:
+        return self.model(data)
+
     def _train_epoch(self, epoch):
         """
         Training logic for an epoch
@@ -57,7 +60,7 @@ class Trainer(BaseTrainer):
             target = self._choose_target(data, label)
 
             self.optimizer.zero_grad()
-            output = self.model(data)
+            output = self._forward_model(data)
             loss = self.criterion(output, target, self.model)
             loss.backward()
             self.optimizer.step()
@@ -147,3 +150,64 @@ class BetaVaeTrainer(UnsupervisedTrainer):
 
     def _post_epoch(self, epoch: int) -> None:
         self.model.beta_scheduler.step(epoch)
+
+
+class AdversarialTrainer:
+    """
+    Trainer class for Adversarial training
+    of a generator model with a discriminator model.
+    For now, does not actually train the generator.
+    """
+
+    def __init__(self, gen_trainer: Trainer, dis_trainer: BaseTrainer):
+        self.gen_trainer = gen_trainer
+        self.gen_data_loader = self.gen_trainer.data_loader
+        self.dis_trainer = dis_trainer
+        self.dis_data_loader = self.dis_trainer.data_loader
+
+        self.start_epoch = 1
+        self.epochs = self.gen_trainer.epochs
+
+        self.logger = self.gen_trainer.logger
+
+        # TODO: set right training loss for generator!
+        # self.gen_trainer.criterion =
+
+    def train(self):
+        """
+        Full training logic
+        """
+        not_improved_count = 0
+        switch_epochs = 22
+        epoch_gen = 0
+        epoch_dis = 0
+
+        for epoch_global in range(self.start_epoch, self.epochs + 1):
+            # training_gen = not training_gen
+            # training_trainer = self.gen_trainer if training_gen else self.dis_trainer
+            training_trainer = self.dis_trainer
+            training_gen = False
+            for epoch_switch in range(1, switch_epochs + 1):
+                epoch = epoch_global * epoch_switch
+                result = training_trainer._train_epoch(epoch)
+
+                # save logged informations into log dict
+                log = {
+                    'phase': 'Generation' if training_gen else 'Classification',
+                    'epoch': epoch
+                }
+                log.update(result)
+
+                # print logged informations to the screen
+                for key, value in log.items():
+                    self.logger.info('    {:15s}: {}'.format(str(key), value))
+
+                # evaluate model performance according to configured metric, save best checkpoint as model_best
+                best = False
+                if epoch // 2 % training_trainer.save_period == 0:
+                    training_trainer._save_checkpoint(
+                        epoch // 2, save_best=best)
+                if training_gen:
+                    epoch_gen += 1
+                else:
+                    epoch_dis += 1

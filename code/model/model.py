@@ -7,7 +7,7 @@ from torch.autograd import Variable
 from typing import Tuple, Callable, Union, Any
 import abc
 from utils import get_output_shape
-from base import BaseModel
+from base import BaseModel, GenerativeModel
 
 
 class RandomSampler(BaseModel):
@@ -191,19 +191,28 @@ class VariationalDecoder(BaseModel):
         return x_hat
 
 
-class Vae(BaseModel):
+class Vae(GenerativeModel):
     def __init__(self, input_dim: Tuple[int, int, int], latent_size: int, conv_cfg: dict, e_sampler_fac: Callable[[Any], RandomSampler], d_sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
+        self._input_dim = tuple(input_dim)
         self.encoder = VariationalEncoder(
-            input_dim, latent_size, conv_cfg, sampler_fac=e_sampler_fac)
+            self._input_dim, latent_size, conv_cfg, sampler_fac=e_sampler_fac)
         self.decoder = VariationalDecoder(
-            input_dim, latent_size, conv_cfg, sampler_fac=d_sampler_fac)
+            self._input_dim, latent_size, conv_cfg, sampler_fac=d_sampler_fac)
         self.latent_size = latent_size
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         z = self.encoder(x)
         x_hat = self.decoder(z)
         return x_hat
+
+    def sample(self, nb_samples: int = None, data: torch.Tensor = None, ) -> torch.Tensor:
+        with torch.no_grad():
+            if data is None:
+                if nb_samples is None:
+                    raise AttributeError()
+                data = torch.rand((nb_samples,) + self._input_dim)
+            return self.forward(data)
 
 
 class BetaScheduler:
@@ -241,7 +250,7 @@ class BetaVae(Vae):
         return self.beta_scheduler.get_value()
 
 
-class MnistModel(BaseModel):
+class MnistClassifier(BaseModel):
     def __init__(self, num_classes=10):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
