@@ -18,9 +18,11 @@ class RandomSampler(BaseModel):
         self._prior_distrib = prior_distrib
         self.input_last = None
 
-        def hook(module: RandomSampler, args: Tuple[torch.Tensor]) -> None:
-            self.input_last = args[0]
-        self.register_forward_pre_hook(hook)
+        # self.register_forward_pre_hook(self.forward_hook)
+
+    @staticmethod
+    def forward_hook(self, module: BaseModel, args: Tuple[torch.Tensor]) -> None:
+        self.input_last = args[0]
 
     @abc.abstractmethod
     def log_likelihood(self, target: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:
@@ -43,21 +45,24 @@ class GaussianRandomSampler(RandomSampler):
             nn.Tanh(),
         )
         self._l_mean = nn.Linear(self._input_size, self._output_size)
-        if fixed_var is None:
+        self._fixed_var = fixed_var
+        if self._fixed_var is None:
             self._l_logscale = nn.Linear(
                 self._input_size, self._output_size)
         else:
-            self._l_logscale = lambda _: torch.log(
-                torch.tensor(fixed_var))
+            self._l_logscale = None
 
     def forward(self, y: torch.Tensor) -> torch.Tensor:
+        # FIXME: foward_hook in RandomSampler does not work on Windows.
+        self.input_last = y
         z_mean, z_scale = self._l_moments(y)
         z = z_mean + z_scale * self._prior_distrib.sample()
         return z
 
     def _l_moments(self, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         y_h = self._l_1(y)
-        return self._l_mean(y_h), torch.exp(self._l_logscale(y_h))
+        scale = self._fixed_var if self._fixed_var is not None else torch.exp(self._l_logscale(y_h))
+        return self._l_mean(y_h), scale
 
     def kl_divergence(self, _x: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:
         z_mean, z_scale = self._l_moments(input_last)
@@ -93,6 +98,8 @@ class BernoulliRandomSampler(RandomSampler):
         )
 
     def forward(self, y: torch.Tensor) -> torch.Tensor:
+        # FIXME: foward_hook in RandomSampler does not work on Windows.
+        self.input_last = y
         probs = self._l_probs(y)
         z = torch.bernoulli(probs)
         return z
