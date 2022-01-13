@@ -8,7 +8,7 @@ from typing import Tuple
 # tofix: why do I need to use base.base_visualizer instead of just base?
 from base.base_visualizer import BaseVisualizer
 from base import BaseDataLoader, BaseModel
-from model import Vae
+from model import Vae, BetaVae
 
 
 class Visualizer(BaseVisualizer):
@@ -36,7 +36,7 @@ class Visualizer(BaseVisualizer):
 
 
 class UnsupervisedVisualizer(Visualizer):
-    """[summary]
+    """Visaliser for unsupervised training. Adds output of the generative model.
 
     Args:
         BaseVisualizer ([type]): [description]
@@ -49,7 +49,7 @@ class UnsupervisedVisualizer(Visualizer):
 
 
 class VaeVisualizer(UnsupervisedVisualizer):
-    """[summary]
+    """Visualiser for VAEs. Adds sampling and clustering of latent space.
 
     Args:
         UnsupervisedVisualizer ([type]): [description]
@@ -120,3 +120,15 @@ class VaeVisualizer(UnsupervisedVisualizer):
                 if n > nb_points:
                     break
         return x, y, c
+
+
+class BetaVaeVisualizer(VaeVisualizer):
+    """Visualiser for $\beta$-VAEs. Adds logging of the $\beta$ parameter's variation.
+
+    Args:
+        UnsupervisedVisualizer ([type]): [description]
+    """
+
+    def log_batch_train(self, model: BetaVae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
+        super().log_batch_train(model, epoch, batch_idx, data, output, label, loss)
+        self.writer.add_scalar('beta', model.beta)

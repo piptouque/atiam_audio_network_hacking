@@ -33,13 +33,13 @@ _VSCO2_RELEASE_CONFIGS = {
 
 class VSCO2(Dataset):
     """Create a Dataset for VSCO2.
+    Taken/Inspired by the YESNO dataset implementation: https://pytorch.org/audio/stable/_modules/torchaudio/datasets/yesno.html#YESNO
 
     Args:
         root (str or Path): Path to the directory where the dataset is found or downloaded.
         url (str, optional): The URL to download the dataset from.
-            (default: ``"http://www.openslr.org/resources/1/waves_yesno.tar.gz"``)
         folder_in_archive (str, optional):
-            The top-level directory of the dataset. (default: ``"waves_yesno"``)
+            The top-level directory of the dataset. 
         download (bool, optional):
             Whether to download the dataset if it is not found at root path. (default: ``False``).
     """
@@ -54,7 +54,17 @@ class VSCO2(Dataset):
         self.transform = transform
         self._parse_filesystem(root, cfg, download)
 
-    def _parse_filesystem(self, root: str, cfg, download: bool) -> None:
+    def _parse_filesystem(self, root: str, cfg: dict, download: bool) -> None:
+        """Inits instance from config
+
+        Args:
+            root (str): [description]
+            cfg (dict): [description]
+            download (bool): [description]
+
+        Raises:
+            RuntimeError: [description]
+        """
         root = Path(root)
         folder_in_archive, url, checksum = cfg["folder_in_archive"], cfg["url"], cfg["checksum"]
         archive_name = cfg["archive_name"]

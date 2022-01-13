@@ -3,8 +3,9 @@ import torch.nn.functional as func
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from .model import Vae, BetaVae
-from .metric import vae_divergence_loss, vae_reconstruction_loss
+
+from .models import Vae, BetaVae
+from .metrics import vae_divergence_loss, vae_reconstruction_loss
 
 
 def nll_loss(output: torch.Tensor, target: torch.Tensor, _: nn.Module = None) -> Variable:
