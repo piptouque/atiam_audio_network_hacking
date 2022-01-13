@@ -184,7 +184,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--dis_config",
-                "${cwd}/code/config/models/mnist_classifier_config.json",
+                "${cwd}/code/config/models/mnist_adversarial_config.json",
                 "--gen_resume",
                 "${file}",
                 "--log",

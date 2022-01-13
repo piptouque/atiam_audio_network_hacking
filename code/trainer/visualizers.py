@@ -70,22 +70,24 @@ class VaeVisualizer(UnsupervisedVisualizer):
         super().log_epoch_train(model, epoch, data_loader)
         c_cfg = self.vis_cfg['clusters_latent']
         if c_cfg['plot']:
+            """
             assert model.latent_size == 2, "NOoooooooO"
-            nb_points = c_cfg['nb_points']
-            fig = plt.figure()
-            fig, ax = plt.subplots()
+            nb_points=c_cfg['nb_points']
+            fig=plt.figure()
+            fig, ax=plt.subplots()
 
-            x, y, c = self._cluster_latent(model, data_loader, nb_points)
+            x, y, c=self._cluster_latent(model, data_loader, nb_points)
             # .. do other stuff
             # plot to ax3
-            coll = ax.scatter(x, y, c=c, cmap='tab10')
+            coll=ax.scatter(x, y, c=c, cmap='tab10')
             fig.colorbar(coll)
             self.writer.add_figure('clusters_latent', fig)
             plt.close(fig)
+            """
 
     def _sample_latent(self, model: Vae, lims: Tuple[Tuple[int, int], Tuple[int, int]], nb_points: Tuple[int, int]) -> torch.Tensor:
         """Get a tensor of images
-        linearly spaced coordinates corresponding to the 
+        linearly spaced coordinates corresponding to the
         classes in the latent space.
         Args:
             dim (Tuple[int, int]): [description]

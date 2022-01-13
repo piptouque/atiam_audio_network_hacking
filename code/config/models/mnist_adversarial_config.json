@@ -45,11 +45,6 @@
             "module": "metric",
             "type": "accuracy",
             "args": {}
-        },
-        {
-            "module": "metric",
-            "type": "top_k_acc",
-            "args": {}
         }
     ],
     "lr_scheduler": {

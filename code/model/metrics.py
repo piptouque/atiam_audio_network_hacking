@@ -8,18 +8,18 @@ from .models import Vae
 
 
 @torch.no_grad()
-def accuracy(output: torch.Tensor, target: torch.Tensor, _model: nn.Module, dim: int = 1) -> float:
-    pred = torch.argmax(output, dim=dim)
-    assert pred.shape[0] == len(target)
+def accuracy(output: torch.Tensor, target: torch.Tensor, _model: nn.Module) -> float:
+    pred = torch.argmax(output, dim=-1)
+    # assert pred.shape[0] == len(target)
     correct = 0
     correct += torch.sum(pred == target).item()
     return correct / len(target)
 
 
 @torch.no_grad()
-def top_k_acc(output: torch.Tensor, target: torch.Tensor, _model: nn.Module, dim: int = 1, k: int = 3) -> float:
-    pred = torch.topk(output, k=k, dim=dim)[1]
-    assert pred.shape[0] == len(target)
+def top_k_acc(output: torch.Tensor, target: torch.Tensor, _model: nn.Module, k: int = 3) -> float:
+    pred = torch.topk(output, k=k, dim=-1)[1]
+    # assert pred.shape[0] == len(target)
     correct = 0
     for i in range(k):
         correct += torch.sum(pred[:, i] == target).item()

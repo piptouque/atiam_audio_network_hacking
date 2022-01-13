@@ -5,7 +5,7 @@ import torchvision as vis
 from typing import List, Tuple, Union, Any
 
 from base import BaseDataLoader, GenerativeModel
-from .datasets import VSCO2, YESNOPacked, GeneratedDataset
+from .datasets import VSCO2, YESNOPacked, GeneratedDataset, UntamperedDataset
 
 
 class MnistDataLoader(BaseDataLoader):
@@ -88,12 +88,10 @@ class AdversarialDataloader(BaseDataLoader):
     def __init__(self, gen_data_loader: BaseDataLoader, gen_model: GenerativeModel) -> None:
         self._gen_model = gen_model
         self._gen_data_loader = gen_data_loader
-        self._gen_dataset = self._gen_data_loader.dataset
+        self._gen_dataset = UntamperedDataset(self._gen_data_loader.dataset)
 
         self._dis_dataset = GeneratedDataset(
             self._gen_model, len(self._gen_dataset))
         self.dataset = ConcatDataset([self._gen_dataset, self._dis_dataset])
         super().__init__(self.dataset, self._gen_data_loader.batch_size, self._gen_data_loader.shuffle,
                          self._gen_data_loader.validation_split, self._gen_data_loader.num_workers)
-
-

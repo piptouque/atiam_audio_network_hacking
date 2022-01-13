@@ -158,7 +158,7 @@ class GeneratedDataset(Dataset):
         self,
         gen_model: GenerativeModel,
         nb_samples: int,
-        label: int = -1
+        label: int = 1
     ) -> None:
         self._gen_model = gen_model
         self._nb_samples = nb_samples
@@ -177,3 +177,27 @@ class GeneratedDataset(Dataset):
 
     def __len__(self) -> int:
         return self._nb_samples
+
+
+class UntamperedDataset(Dataset):
+    """Adversarial version of MNIST, labels all set to 1 (genuine)
+    """
+
+    def __init__(self, dataset: Dataset, label: int = 0) -> None:
+        self._dataset = dataset
+        self._label = label
+
+    def __getitem__(self, n: int) -> Tuple[torch.Tensor, int, List[int]]:
+        """Load the n-th sample from the dataset.
+        Args:
+            n (int): The index of the sample to be loaded
+
+        Returns:
+            (Tensor, int, List[int]): ``(waveform, sample_rate, labels)``
+        """
+        data, label = self._dataset[n]
+        label = self._label
+        return data, label
+
+    def __len__(self) -> int:
+        return len(self._dataset)
