@@ -60,9 +60,11 @@ dependencies:
   - lcms2=2.12
   - ld_impl_linux-64=2.36.1
   - lerc=3.0
+  - libblas=3.9.0
   - libbrotlicommon=1.0.9
   - libbrotlidec=1.0.9
   - libbrotlienc=1.0.9
+  - libcblas=3.9.0
   - libclang=11.1.0
   - libdeflate=1.8
   - libedit=3.1.20191231
@@ -71,6 +73,7 @@ dependencies:
   - libgcc-ng=11.2.0
   - libglib=2.70.2
   - libiconv=1.16
+  - liblapack=3.9.0
   - libllvm11=11.1.0
   - libnsl=2.0.0
   - libogg=1.3.4
@@ -157,6 +160,7 @@ dependencies:
   - torchaudio=0.10.1
   - torchvision=0.11.2
   - tornado=6.1
+  - tqdm=4.62.3
   - typing-extensions=4.0.1
   - typing_extensions=4.0.1
   - tzdata=2021e

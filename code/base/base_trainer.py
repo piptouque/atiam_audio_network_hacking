@@ -1,3 +1,4 @@
+from typing import List, Callable
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -16,7 +17,7 @@ class BaseTrainer:
     Base class for all trainers
     """
 
-    def __init__(self, model, criterion: LossCriterion, metric_ftns, optimizer, visualizer: BaseVisualizer, logger, config):
+    def __init__(self, model, criterion: LossCriterion, metric_ftns: List[Callable], optimizer, visualizer: BaseVisualizer, logger, config: dict) -> None:
         self.model = model
         self.criterion = criterion
         self.metric_ftns = metric_ftns
@@ -34,7 +35,7 @@ class BaseTrainer:
         if not succeeded:
             message = "Warning: visualization (Tensorboard) is configured to use, but currently not installed on " \
                 "this machine. Please install TensorboardX with 'pip install tensorboardx', upgrade PyTorch to " \
-                "version >= 1.1 to use 'torch.utils.tensorboard' or turn off the option in the 'config.json' file."
+                "version >= 1.1 to use 'torch.utils.tensorboard' or turn off the option in the config file."
             logger.warning(message)
 
         # configuration to monitor model performance and save best
@@ -61,21 +62,31 @@ class BaseTrainer:
             self._resume_checkpoint(config.resume)
 
     @abstractmethod
-    def _train_epoch(self, epoch):
-        """
-        Training logic for an epoch
+    def _train_epoch(self, epoch: int) -> None:
+        """Training logic for a single epoch.
 
-        :param epoch: Current epoch number
+        Args:
+            epoch (int): Epoch iteration number
+
         """
         raise NotImplementedError
 
     @abstractmethod
-    def _log_batch(self, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, target: torch.Tensor, loss: Variable):
-        raise NotImplementedError
+    def _log_batch(self, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, target: torch.Tensor, loss: Variable) -> None:
+        """Optional logging after each processed batch.
 
-    def train(self):
+        Args:
+            epoch (int): Epoch iteration number
+            batch_idx (int): Batch number
+            data (torch.Tensor): Input data
+            output (torch.Tensor): Output of model
+            target (torch.Tensor): Target data
+            loss (Variable): Model loss
         """
-        Full training logic
+        pass
+
+    def train(self) -> None:
+        """Full training logic
         """
         not_improved_count = 0
         for epoch in range(self.start_epoch, self.epochs + 1):
@@ -119,6 +130,14 @@ class BaseTrainer:
                 self._save_checkpoint(epoch, save_best=best)
 
     def _progress(self, batch_idx: int) -> str:
+        """[summary]
+
+        Args:
+            batch_idx (int): Batch number
+
+        Returns:
+            str: Progress logged as a string
+        """
         base = '[{}/{} ({:.0f}%)]'
         if hasattr(self.data_loader, 'n_samples'):
             current = batch_idx * self.data_loader.batch_size
@@ -128,13 +147,11 @@ class BaseTrainer:
             total = self.len_epoch
         return base.format(current, total, 100.0 * current / total)
 
-    def _save_checkpoint(self, epoch, save_best=False):
-        """
-        Saving checkpoints
-
-        :param epoch: current epoch number
-        :param log: logging information of the epoch
-        :param save_best: if True, rename the saved checkpoint to 'model_best.pth'
+    def _save_checkpoint(self, epoch: int, save_best: bool = False) -> None:
+        """Saves latest weights.
+        Args:
+            epoch (int): Epoch iteration number.
+            save_best (bool, optional): If True, renames the checkpoint to 'model_best.pth'. Defaults to False.
         """
         arch = type(self.model).__name__
         state = {
@@ -154,11 +171,11 @@ class BaseTrainer:
             torch.save(state, best_path)
             self.logger.info("Saving current best: model_best.pth ...")
 
-    def _resume_checkpoint(self, resume_path):
-        """
-        Resume from saved checkpoints
+    def _resume_checkpoint(self, resume_path: str) -> None:
+        """Resume from saved checkpoints
 
-        :param resume_path: Checkpoint path to be resumed
+        Args:
+            resume_path (str): param resume_path: Checkpoint path to be resumed
         """
         resume_path = str(resume_path)
         self.logger.info("Loading checkpoint: {} ...".format(resume_path))

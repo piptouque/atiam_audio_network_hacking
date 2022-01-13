@@ -36,9 +36,9 @@
                 "module": "model",
                 "type": "BetaScheduler",
                 "args": {
-                    "step_size": 50,
-                    "gamma": 20,
-                    "init_val": 0,
+                    "step_size": 1,
+                    "gamma": 0.85,
+                    "init_val": 50000,
                     "bounds": [
                         0,
                         50000
@@ -104,7 +104,7 @@
     },
     "visualizer": {
         "module": "visualizer",
-        "type": "VaeVisualizer",
+        "type": "BetaVaeVisualizer",
         "args": {}
     },
     "training": {

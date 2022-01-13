@@ -2,10 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 import numpy as np
-from torch.autograd import Variable
-
-from typing import Tuple, Callable, Union, Any
 import abc
+from typing import Tuple, Callable, Union, Any
+
 from utils import get_output_shape
 from base import BaseModel, GenerativeModel
 
@@ -235,16 +234,17 @@ class BetaScheduler:
         self._last_val = self.init_val
         self.bounds = bounds
 
-    def get_value(self) -> float:
-        if self.last_epoch < 0:
-            return self.init_val
-        else:
-            val = self.init_val * \
-                (1 + self.gamma * (self.last_epoch // self.step_size))
-            return min(self.bounds[1], max(self.bounds[0], val))
+    def get_last_value(self) -> float:
+        return self._last_val
 
     def step(self, epoch: int) -> None:
         self.last_epoch = int(epoch)
+        if self.last_epoch < 0:
+            self._last_val = self.init_val
+        else:
+            val = self.init_val * self.gamma ** \
+                (self.last_epoch // self.step_size)
+            self._last_val = min(self.bounds[1], max(self.bounds[0], val))
 
 
 class BetaVae(Vae):
@@ -254,7 +254,7 @@ class BetaVae(Vae):
 
     @ property
     def beta(self) -> float:
-        return self.beta_scheduler.get_value()
+        return self.beta_scheduler.get_last_value()
 
 
 class MnistClassifier(BaseModel):

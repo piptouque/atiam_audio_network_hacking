@@ -3,13 +3,15 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data.sampler import SubsetRandomSampler
 
+from typing import Tuple
+
 
 class BaseDataLoader(DataLoader):
     """
-    Base class for all data loaders
+    Base class for all data loaders. Splits between training and validation datasets.
     """
 
-    def __init__(self, dataset, batch_size, shuffle, validation_split, num_workers, collate_fn=default_collate):
+    def __init__(self, dataset, batch_size: int, shuffle: bool, validation_split: bool, num_workers: int, collate_fn=default_collate) -> None:
         self.validation_split = validation_split
         self.shuffle = shuffle
 
@@ -28,7 +30,15 @@ class BaseDataLoader(DataLoader):
         }
         super().__init__(sampler=self.sampler, **self.init_kwargs)
 
-    def _split_sampler(self, split):
+    def _split_sampler(self, split: float) -> Tuple[object]:
+        """Splits dataset between training and validation.
+
+        Args:
+            split (float): Split proportion
+
+        Returns:
+            Tuple[object]: 2-Tuple of training and validation samplers.
+        """
         if split == 0.0:
             return None, None
 
@@ -56,7 +66,12 @@ class BaseDataLoader(DataLoader):
 
         return train_sampler, valid_sampler
 
-    def split_validation(self):
+    def split_validation(self) -> DataLoader:
+        """[summary]
+
+        Returns:
+            DataLoader: Validation data loader.
+        """
         if self.valid_sampler is None:
             return None
         else:

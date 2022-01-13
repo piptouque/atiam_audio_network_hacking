@@ -3,10 +3,10 @@ import collections
 import torch
 import numpy as np
 import data_loader.data_loaders as module_data
-import model.loss as module_loss
-import model.metric as module_metric
-import model.model as module_arch
-import logger.visualization as module_visualization
+import model.losses as module_loss
+import model.metrics as module_metric
+import model.models as module_arch
+import trainer.visualizers as module_visualizer
 import trainer as module_trainer
 from utils import prepare_device
 from utils.parse_config import ConfigParser
@@ -48,7 +48,7 @@ def main(config):
     lr_scheduler = config.init_obj(
         'lr_scheduler', torch.optim.lr_scheduler, optimizer)
 
-    visualizer = config.init_obj('visualizer', module_visualization)
+    visualizer = config.init_obj('visualizer', module_visualizer)
 
     trainer = config.init_obj('trainer', module_trainer,
                               model=model,
