@@ -158,7 +158,7 @@ class GeneratedDataset(Dataset):
         self,
         gen_model: GenerativeModel,
         nb_samples: int,
-        label: int = 0
+        label: int = -1
     ) -> None:
         self._gen_model = gen_model
         self._nb_samples = nb_samples
