@@ -60,7 +60,8 @@ class GaussianRandomSampler(RandomSampler):
 
     def _l_moments(self, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         y_h = self._l_1(y)
-        scale = self._fixed_var if self._fixed_var is not None else torch.exp(self._l_logscale(y_h))
+        scale = torch.tensor(self._fixed_var) if self._fixed_var is not None else torch.exp(
+            self._l_logscale(y_h))
         return self._l_mean(y_h), scale
 
     def kl_divergence(self, _x: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:

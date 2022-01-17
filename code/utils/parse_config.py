@@ -105,15 +105,23 @@ class ConfigParser:
             root = self[path]
             path = [path]
 
-        ftn_args = dict(root['args'])
-        assert all([k not in ftn_args for k in kwargs]
+        ftn_kwargs = dict(
+            root['kwargs']) if 'kwargs' in root.keys() else dict()
+        assert all([k not in ftn_kwargs for k in kwargs]
                    ), 'Overwriting kwargs given in config file is not allowed'
-        ftn_args.update(kwargs)
+        ftn_kwargs.update(kwargs)
+        ftn_args = list(root['args']) if 'args' in root.keys() else args
         # force rec for now
         rec = True
         if rec:
-            for k, v in ftn_args.items():
-                if isinstance(v, dict) and 'args' in v:
+            for k, v in ftn_kwargs.items():
+                if isinstance(v, dict) and 'handle' in v:
+                    # recursively init the arg
+                    ftn_kwargs[k] = self.init_handle(
+                        [*path, 'kwargs', k], v['module'], v['handle'])
+            for k in range(len(ftn_args)):
+                v = ftn_args[k]
+                if isinstance(v, dict) and 'handle' in v:
                     # recursively init the arg
                     ftn_args[k] = self.init_handle(
                         [*path, 'args', k], v['module'], v['handle'])
@@ -126,11 +134,11 @@ class ConfigParser:
                 assert False, f"Could not import module {module}"
         assert handle in ftn_handles, f"'{ftn_handle}' handle not recognised"
         if handle == 'obj':
-            return getattr(module, ftn_name)(*args, **ftn_args)
+            return getattr(module, ftn_name)(*ftn_args, **ftn_kwargs)
         elif handle == 'ftn':
             # hack: give the function handle the same name as the original
             ftn = getattr(module, ftn_name)
-            ftn_n = partial(ftn, *args, **ftn_args)
+            ftn_n = partial(ftn, *args, **ftn_kwargs)
             ftn_n.__name__ = ftn.__name__
             return ftn_n
 
