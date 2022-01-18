@@ -1,8 +1,10 @@
 import torch
+import torch.nn as nn
 import torchvision.utils
 from torch.autograd import Variable
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 from typing import Tuple
 # tofix: why do I need to use base.base_visualizer instead of just base?
@@ -56,6 +58,7 @@ class VaeVisualizer(UnsupervisedVisualizer):
         self.batch_size = 8
         self.symbols_loader = BinaryFashionMnistDataLoader("./", self.batch_size, training=False)
 
+
     def log_batch_train(self, model: Vae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
         super().log_batch_train(model, epoch, batch_idx, data, output, label, loss)
         s_cfg = self.vis_cfg['sampled_latent']
@@ -67,8 +70,11 @@ class VaeVisualizer(UnsupervisedVisualizer):
             self.writer.add_image('sampled_latent', torchvision.utils.make_grid(
                 x_hat.cpu(), nrow=nb_points[0], normalize=True))
 
+
     def log_epoch_train(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
         super().log_epoch_train(model, epoch, data_loader)
+        clean_weights = copy.deepcopy(model.state_dict())
+        print(clean_weights.shape)
         c_cfg = self.vis_cfg['clusters_latent']
         if c_cfg['plot']:
             assert model.latent_size == 2, "NOoooooooO"
@@ -85,6 +91,20 @@ class VaeVisualizer(UnsupervisedVisualizer):
             plt.close(fig)
         self._log_new_digits(model, epoch, data_loader)
         self._log_new_digits_from_symbols(model, epoch, data_loader)
+
+
+    def weight_reset_rand(self, model: Vae, rate: float):
+        for layer in model.children():
+            should_reset = np.random.binomial(1, rate)
+            if hasattr(layer, 'reset_parameters') and should_reset:
+                layer.reset_parameters()
+                
+
+    #def _corrupted_model(self, model: Vae, rate: float) -> Vae:
+    #   model = model.detach()
+    #   corrupted_model = copy.deepcopy(model)
+    #   corrupted_model.weight_reset_rand(model, rate)
+    #   return corrupted_model
 
 
     def _log_new_digits(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
@@ -135,6 +155,7 @@ class VaeVisualizer(UnsupervisedVisualizer):
             z = torch.flatten(z, start_dim=0, end_dim=-2)
             x_hat = model.decoder(z)
             return x_hat
+
 
     def _cluster_latent(self, model: Vae, data_loader: BaseDataLoader, nb_points: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         x = []
