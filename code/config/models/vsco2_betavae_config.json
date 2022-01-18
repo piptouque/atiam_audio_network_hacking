@@ -1,12 +1,12 @@
 {
     "version": 5,
-    "name": "Mnist_BetaVae",
+    "name": "Vsco2_BetaVae",
     "n_gpu": 1,
     "arch": {
         "handle": "obj",
         "module": "model",
         "type": "BetaVae",
-        "args": {
+        "kwargs": {
             "input_dim": [
                 1,
                 28,
@@ -20,14 +20,13 @@
             "e_sampler_fac": {
                 "handle": "ftn",
                 "module": "model",
-                "type": "GaussianRandomSampler",
-                "args": {}
+                "type": "GaussianRandomSampler"
             },
             "d_sampler_fac": {
                 "handle": "ftn",
                 "module": "model",
                 "type": "GaussianRandomSampler",
-                "args": {
+                "kwargs": {
                     "fixed_var": 0.01
                 }
             },
@@ -35,7 +34,7 @@
                 "handle": "obj",
                 "module": "model",
                 "type": "BetaScheduler",
-                "args": {
+                "kwargs": {
                     "step_size": 50,
                     "gamma": 0.1,
                     "init_val": 0,
@@ -50,7 +49,7 @@
     "data_loader": {
         "module": "data_loader",
         "type": "Vsco2DataLoader",
-        "args": {
+        "kwargs": {
             "data_dir": "toy/",
             "batch_size": 128,
             "shuffle": true,
@@ -58,20 +57,35 @@
             "num_workers": 2,
             "transform": {
                 "handle": "obj",
-                "module": "torchaudio.transforms",
-                "type": "Spectrogram",
-                "args": {
-                    "n_fft": 1024,
-                    "win_length": 512,
-                    "hop_length": 256
-                }
+                "module": "torch.nn",
+                "type": "Sequential",
+                "args": [
+                    {
+                        "handle": "obj",
+                        "module": "model",
+                        "type": "Truncate",
+                        "kwargs": {
+                            "nb_samples": 88200
+                        }
+                    },
+                    {
+                        "handle": "obj",
+                        "module": "torchaudio.transforms",
+                        "type": "Spectrogram",
+                        "kwargs": {
+                            "n_fft": 1024,
+                            "win_length": 512,
+                            "hop_length": 256
+                        }
+                    }
+                ]
             }
         }
     },
     "optimizer": {
         "module": "torch.optim",
         "type": "Adam",
-        "args": {
+        "kwargs": {
             "lr": 0.001,
             "betas": [
                 0.9,
@@ -84,38 +98,33 @@
     },
     "loss": {
         "module": "loss",
-        "type": "beta_vae_total_loss",
-        "args": {}
+        "type": "beta_vae_total_loss"
     },
     "metrics": [
         {
             "module": "metric",
-            "type": "vae_reconstruction_loss",
-            "args": {}
+            "type": "vae_reconstruction_loss"
         },
         {
             "module": "metric",
-            "type": "vae_divergence_loss",
-            "args": {}
+            "type": "vae_divergence_loss"
         }
     ],
     "lr_scheduler": {
         "module": "torch.optim.lr_scheduler",
         "type": "StepLR",
-        "args": {
+        "kwargs": {
             "step_size": 50,
             "gamma": 0.1
         }
     },
     "trainer": {
         "module": "trainer",
-        "type": "BetaVaeTrainer",
-        "args": {}
+        "type": "BetaVaeTrainer"
     },
     "visualizer": {
         "module": "visualizer",
-        "type": "VaeVisualizer",
-        "args": {}
+        "type": "VaeVisualizer"
     },
     "training": {
         "epochs": 40,

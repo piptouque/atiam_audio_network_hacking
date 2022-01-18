@@ -6,7 +6,7 @@
         "handle": "obj",
         "module": "model",
         "type": "Vae",
-        "args": {
+        "kwargs": {
             "input_dim": [
                 1,
                 28,
@@ -20,21 +20,19 @@
             "e_sampler_fac": {
                 "handle": "ftn",
                 "module": "model",
-                "type": "GaussianRandomSampler",
-                "args": {}
+                "type": "GaussianRandomSampler"
             },
             "d_sampler_fac": {
                 "handle": "ftn",
                 "module": "model",
-                "type": "BernoulliRandomSampler",
-                "args": {}
+                "type": "BernoulliRandomSampler"
             }
         }
     },
     "data_loader": {
         "module": "data_loader",
         "type": "BinaryMnistDataLoader",
-        "args": {
+        "kwargs": {
             "data_dir": "toy/",
             "batch_size": 128,
             "shuffle": true,
@@ -45,7 +43,7 @@
     "optimizer": {
         "module": "torch.optim",
         "type": "Adam",
-        "args": {
+        "kwargs": {
             "lr": 0.001,
             "betas": [
                 0.9,
@@ -58,38 +56,33 @@
     },
     "loss": {
         "module": "loss",
-        "type": "vae_total_loss",
-        "args": {}
+        "type": "vae_total_loss"
     },
     "metrics": [
         {
             "module": "metric",
-            "type": "vae_reconstruction_loss",
-            "args": {}
+            "type": "vae_reconstruction_loss"
         },
         {
             "module": "metric",
-            "type": "vae_divergence_loss",
-            "args": {}
+            "type": "vae_divergence_loss"
         }
     ],
     "lr_scheduler": {
         "module": "torch.optim.lr_scheduler",
         "type": "StepLR",
-        "args": {
+        "kwargs": {
             "step_size": 50,
             "gamma": 0.1
         }
     },
     "trainer": {
         "module": "trainer",
-        "type": "UnsupervisedTrainer",
-        "args": {}
+        "type": "UnsupervisedTrainer"
     },
     "visualizer": {
         "module": "visualization",
-        "type": "VaeVisualizer",
-        "args": {}
+        "type": "VaeVisualizer"
     },
     "training": {
         "epochs": 40,

@@ -9,23 +9,23 @@ import torch.nn as nn
 import torchaudio
 
 from torch.utils.data import Dataset
+from torchvision.datasets.utils import download_url, extract_archive
 from torchaudio.datasets import YESNO
-from torchaudio.datasets.utils import download_url, extract_archive
 from torchaudio.datasets.yesno import _RELEASE_CONFIGS as _YESNO_RELEASE_CONFIGS
 
 from base import GenerativeModel
 
 _VSCO2_RELEASE_CONFIGS = {
-    "hardcore": {
-        "folder_in_archive": "VSCO2_hardcore",
-        "archive_name": "50OrchestralSamples.zip",
-        "url": "https://uc83fded2dd0e02e3c1b77154085.dl.dropboxusercontent.com/zip_download_get/BAxqx1PzWHqR-1JbJe10zyPjiur_6t1HXOZa7pQpFbybBIMNCMgtfdd9xjjmdpi4Ec3vkjH-NocLYmcq4i3SxqIpgaU1Amri6p53ixbY3UPoPA?_download_id=228461718975105252695810256925787335041281438952017275431986463752",
-        "checksum": None
-    },
     "partial": {
         "folder_in_archive": "VSCO2_partial",
-        "archive_name": "256OrchestralSamples.zip",
-        "url": "https://uc5ee82ae5da88cfddddd9b91de7.dl.dropboxusercontent.com/zip_download_get/BAzIicx7d8Ew39KmOaP__sjxd2ik_yzuPGaYVml_cq1Ie9G7uGmz8L0HcFCzzTOOEfokwJ44y9KLDjJQElfbw-Y4YrTd7WCejw9ZZGdkHvbpmQ?_download_id=144379115872197751745977629871310968943451386519978745509876583",
+        "type": "zip",
+        "url": "https://drive.google.com/file/d/1hd-WffTiNkhOdju4AvQcyQDKx406GxDW",
+        "checksum": None
+    },
+    "hardcore": {
+        "folder_in_archive": "VSCO2_hardcore",
+        "type": "zip",
+        "url": "https://drive.google.com/file/d/1QrbdogOgrmQ1WbYblxqxP78oZJpnI4j3",
         "checksum": None
     }
 }
@@ -39,7 +39,7 @@ class VSCO2(Dataset):
         root (str or Path): Path to the directory where the dataset is found or downloaded.
         url (str, optional): The URL to download the dataset from.
         folder_in_archive (str, optional):
-            The top-level directory of the dataset. 
+            The top-level directory of the dataset.
         download (bool, optional):
             Whether to download the dataset if it is not found at root path. (default: ``False``).
     """
@@ -67,14 +67,16 @@ class VSCO2(Dataset):
         """
         root = Path(root)
         folder_in_archive, url, checksum = cfg["folder_in_archive"], cfg["url"], cfg["checksum"]
-        archive_name = cfg["archive_name"]
-        archive = root / archive_name
+        # archive_name = cfg["archive_name"]
+        archive_name = os.path.basename(url + f'.{cfg["type"]}')
+        archive_path = root / archive_name
         self._path = root / folder_in_archive
         if download:
             if not os.path.isdir(self._path):
-                if not os.path.isfile(archive):
-                    download_url(url, root, hash_value=checksum)
-                extract_archive(archive, self._path)
+                if not os.path.isfile(archive_path):
+                    download_url(
+                        url, root, filename=archive_name, md5=checksum)
+                extract_archive(archive_path, self._path)
 
         if not os.path.isdir(self._path):
             raise RuntimeError(

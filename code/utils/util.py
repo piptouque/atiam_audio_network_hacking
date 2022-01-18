@@ -8,7 +8,7 @@ from itertools import repeat
 from collections import OrderedDict
 
 
-from typing import Tuple, Union, Callable, Any
+from typing import Tuple, Union, Callable, Optional, Any
 
 
 def get_output_shape(model: nn.Module, input_shape: Tuple[int, int, int, int]) -> Tuple[int, int, int, int]:
@@ -23,6 +23,7 @@ def get_url_filename(url: str) -> str:
 
     # Detect filename
     return req_info.get_filename()
+
 
 def ensure_dir(dirname):
     dirname = Path(dirname)

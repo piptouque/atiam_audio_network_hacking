@@ -9,6 +9,17 @@ from utils import get_output_shape
 from base import BaseModel, GenerativeModel
 
 
+class Truncate(nn.Module):
+    """Basic truncation transform for the last dimension of a tensor
+    """
+
+    def __init__(self, nb_samples: int) -> None:
+        self._nb_samples = nb_samples
+
+    def foward(self, x: torch.Tensor) -> torch.Tensor:
+        return x[..., self._nb_samples]
+
+
 class RandomSampler(BaseModel):
     def __init__(self, input_size: int, output_size: int, prior_distrib: torch.distributions.Distribution) -> None:
         super().__init__()
@@ -59,7 +70,8 @@ class GaussianRandomSampler(RandomSampler):
 
     def _l_moments(self, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         y_h = self._l_1(y)
-        scale = self._fixed_var if self._fixed_var is not None else torch.exp(self._l_logscale(y_h))
+        scale = torch.tensor(self._fixed_var) if self._fixed_var is not None else torch.exp(
+            self._l_logscale(y_h))
         return self._l_mean(y_h), scale
 
     def kl_divergence(self, _x: torch.Tensor, input_last: torch.Tensor) -> torch.Tensor:

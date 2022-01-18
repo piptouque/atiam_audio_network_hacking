@@ -40,9 +40,8 @@ def vae_reconstruction_loss(_output: torch.Tensor, target: torch.Tensor, model: 
 
 def vae_divergence_loss(_output: torch.Tensor, target: torch.Tensor, model: Vae) -> Variable:
     # dim = tuple(np.arange(1, target.ndim))
-    loss = - \
-        model.encoder.sampler.kl_divergence(
-            target, model.encoder.sampler.input_last)
+    loss = - model.encoder.sampler.kl_divergence(
+        target, model.encoder.sampler.input_last)
     dim = tuple(np.arange(1, loss.dim()))
     loss = loss.sum(dim=dim).mean()
     return loss
