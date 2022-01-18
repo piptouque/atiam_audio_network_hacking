@@ -9,6 +9,17 @@ from utils import get_output_shape
 from base import BaseModel, GenerativeModel
 
 
+class Truncate(nn.Module):
+    """Basic truncation transform for the last dimension of a tensor
+    """
+
+    def __init__(self, nb_samples: int) -> None:
+        self._nb_samples = nb_samples
+
+    def foward(self, x: torch.Tensor) -> torch.Tensor:
+        return x[..., self._nb_samples]
+
+
 class RandomSampler(BaseModel):
     def __init__(self, input_size: int, output_size: int, prior_distrib: torch.distributions.Distribution) -> None:
         super().__init__()

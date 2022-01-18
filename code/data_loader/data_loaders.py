@@ -46,7 +46,8 @@ def audio_collate_fn(data: List[Tuple[Any]]) -> Tuple[Tuple[torch.Tensor, torch.
     Returns:
         Tuple[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]: Output data and label
     """
-    audio, sr, label = zip(*data)
+    data, label = zip(*data)
+    audio, sr = zip(*data)
     audio = torch.tensor(audio)
     sr = torch.tensor(sr)
     label = torch.tensor(label)

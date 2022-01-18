@@ -62,6 +62,14 @@
                 "args": [
                     {
                         "handle": "obj",
+                        "module": "model",
+                        "type": "Truncate",
+                        "kwargs": {
+                            "nb_samples": 88200
+                        }
+                    },
+                    {
+                        "handle": "obj",
                         "module": "torchaudio.transforms",
                         "type": "Spectrogram",
                         "kwargs": {
