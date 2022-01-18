@@ -6,79 +6,78 @@ from base import BaseModel, BaseDataLoader
 
 
 class BaseVisualizer:
-    """[summary]
+    """Base class for visualisers.
+    Holds a reference to the writer and uses it to add data during training.
     """
+
     def __init__(self) -> None:
-        # setup visualization writer instance                
+        # setup visualization writer instance
         self.writer = TensorboardWriter()
         self._vis_cfg = None
         self._cfg = None
 
     def set_up(self, log_dir: str, cfg: dict) -> bool:
-        self._cfg = cfg
-        self._vis_cfg = self._cfg['visualization']
+        """Sets ups up the visualiser instance.
+
+        Args:
+            log_dir (str): path to logging directory
+            cfg (dict): top config
+
+        Returns:
+            bool: Success
+        """
+        self._vis_cfg = cfg['visualization']
         succeeded = self.writer.set_up(log_dir, self._vis_cfg['tensorboard'])
         return succeeded
 
     @abc.abstractmethod
     def log_batch_train(self, model: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
-        """Called after computing training on a single batch.
+        """Logs info after each batch during training.
 
         Args:
-            epoch (int): [description]
-            batch_idx (int): [description]
-            data (torch.Tensor): [description]
-            output (torch.Tensor): [description]
-            label (torch.Tensor): [description]
-            loss (Variable): [description]
-
-        Raises:
-            NotImplementedError: [description]
+            epoch (int): Epoch iteration number
+            batch_idx (int): Batch number
+            data (torch.Tensor): Input data
+            output (torch.Tensor): Output data
+            label (torch.Tensor): Input label
+            loss (Variable): Model loss
         """
-        raise NotImplementedError()
+        pass
 
     @abc.abstractmethod
     def log_epoch_train(self, model: BaseModel, epoch: int, data_loader: BaseDataLoader) -> None:
-        """Called after computing training on a single epoch.
+        """Logs info after each epoch during training.
 
         Args:
-            epoch (int): [description]
-            batch_idx (int): [description]
-            data (torch.Tensor): [description]
-            output (torch.Tensor): [description]
-            label (torch.Tensor): [description]
-            loss (Variable): [description]
+            epoch (int): Epoch iteration number
+            data (torch.Tensor): Input data
+            data_loader (BaseDataLoader): training data loader
 
-        Raises:
-            NotImplementedError: [description]
         """
-        raise NotImplementedError()
+        pass
 
     @abc.abstractmethod
     def log_batch_valid(self, model: BaseModel, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
-        """Called after performing validation on a single batch.
+        """Logs info after each batch during validation.
 
         Args:
-            epoch (int): [description]
-            batch_idx (int): [description]
-            data (torch.Tensor): [description]
-            output (torch.Tensor): [description]
-            label (torch.Tensor): [description]
-            loss (Variable): [description]
-
-        Raises:
-            NotImplementedError: [description]
+            epoch (int): Epoch iteration number
+            batch_idx (int): Batch number
+            data (torch.Tensor): Input data
+            output (torch.Tensor): Output data
+            label (torch.Tensor): Input label
+            loss (Variable): Model loss
         """
-        raise NotImplementedError()
+        pass
 
     @abc.abstractmethod
     def log_epoch_valid(self, model: BaseModel, epoch: int, data_loader: BaseDataLoader) -> None:
-        """Called after performing validation on a single epoch.
+        """Logs info after each epoch during validation.
 
         Args:
-            epoch (int): [description]
+            epoch (int): Epoch iteration number
+            data (torch.Tensor): Input data
+            data_loader (BaseDataLoader): training data loader
 
-        Raises:
-            NotImplementedError: [description]
         """
-        raise NotImplementedError
+        pass

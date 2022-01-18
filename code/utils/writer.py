@@ -1,6 +1,8 @@
 import importlib
 from datetime import datetime
 import distutils.version
+
+
 class TensorboardWriter():
     def __init__(self) -> None:
         self.writer = None
@@ -13,13 +15,11 @@ class TensorboardWriter():
         self.timer = datetime.now()
         self._enabled = False
 
-
     def set_up(self, log_dir: str, enabled: bool) -> bool:
         succeeded = self._get_ext_writer(log_dir)
         self._enabled = enabled and succeeded
         return succeeded
 
-    
     def _get_ext_writer(self, log_dir: str) -> bool:
         succeeded = False
         for module in ["torch.utils.tensorboard", "tensorboardX"]:
@@ -66,5 +66,6 @@ class TensorboardWriter():
             try:
                 attr = object.__getattr__(name)
             except AttributeError:
-                raise AttributeError("type object '{}' has no attribute '{}'".format(self.selected_module, name))
+                raise AttributeError("type object '{}' has no attribute '{}'".format(
+                    self.selected_module, name))
             return attr
