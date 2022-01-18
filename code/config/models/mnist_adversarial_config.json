@@ -70,7 +70,6 @@
         "early_stop": 10
     },
     "visualization": {
-        "tensorboard": true,
-        "sampled_latent": {}
+        "tensorboard": true
     }
 }

@@ -35,12 +35,12 @@
                 "module": "model",
                 "type": "BetaScheduler",
                 "kwargs": {
-                    "step_size": 50,
-                    "gamma": 0.1,
+                    "step_size": 1,
+                    "gamma": 2000,
                     "init_val": 0,
                     "bounds": [
                         0,
-                        1000
+                        50000
                     ]
                 }
             }
@@ -137,7 +137,7 @@
     "visualization": {
         "tensorboard": true,
         "sampled_latent": {
-            "plot": true,
+            "plot": false,
             "nb_points": [
                 32,
                 32
@@ -154,8 +154,17 @@
             ]
         },
         "clusters_latent": {
-            "plot": true,
+            "plot": false,
             "nb_points": 5000
+        },
+        "exploration_latent": {
+            "plot": false,
+            "nb_samples": 8,
+            "nb_iter": 10
+        },
+        "destroy_output": {
+            "plot": false,
+            "corruption_rate": 0.5
         }
     }
 }

@@ -16,6 +16,7 @@ class TensorboardWriter():
         self._enabled = False
 
     def set_up(self, log_dir: str, enabled: bool) -> bool:
+        self._log_dir = log_dir
         succeeded = self._get_ext_writer(log_dir)
         self._enabled = enabled and succeeded
         return succeeded

@@ -114,6 +114,15 @@
         "clusters_latent": {
             "plot": true,
             "nb_points": 5000
+        },
+        "exploration_latent": {
+            "plot": true,
+            "nb_samples": 8,
+            "nb_iter": 10
+        },
+        "destroy_output": {
+            "plot": true,
+            "corruption_rate": 0.5
         }
     }
 }

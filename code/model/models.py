@@ -255,7 +255,7 @@ class BetaScheduler:
         if self.last_epoch < 0:
             self._last_val = self.init_val
         else:
-            val = self.init_val * self.gamma ** \
+            val = self.init_val + self.gamma * \
                 (self.last_epoch // self.step_size)
             self._last_val = min(self.bounds[1], max(self.bounds[0], val))
 

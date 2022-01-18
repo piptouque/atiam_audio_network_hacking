@@ -1,3 +1,4 @@
+import pathlib
 import torch
 import torch.nn as nn
 import torchvision.utils
@@ -64,6 +65,11 @@ class VaeVisualizer(UnsupervisedVisualizer):
         self._symbol_batch_size = self._vis_cfg['exploration_latent']['nb_samples']
         self._symbols_loader = FashionMnistDataLoader(
             data_dir, self._symbol_batch_size, training=False)
+
+        # create a directory for the SVG versions of the latent space plots.
+        self._cluster_fig_path = pathlib.Path(self.writer._log_dir) / \
+            'clusters_latent'
+        self._cluster_fig_path.mkdir(parents=True, exist_ok=True)
         return succeeded
 
     def log_batch_train(self, model: Vae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
@@ -91,6 +97,8 @@ class VaeVisualizer(UnsupervisedVisualizer):
             # plot to ax3
             coll = ax.scatter(x, y, c=c, cmap='tab10')
             fig.colorbar(coll)
+            fig.savefig(self._cluster_fig_path / f'{epoch}.svg', format='svg')
+            # also save in tensorbord, why not.
             self.writer.add_figure('clusters_latent', fig)
             plt.close(fig)
 
@@ -131,7 +139,7 @@ class VaeVisualizer(UnsupervisedVisualizer):
     def _explore_noise(self, model: Vae, nb_samples: int, nb_iter: int, data_loader: BaseDataLoader) -> torch.Tensor:
         data, _ = next(iter(data_loader))
         shape = (nb_samples,) + data.shape[1:]
-        x_i = torch.rand(nb_samples, dtype=data.dtype)
+        x_i = torch.rand(shape, dtype=data.dtype)
         x = [x_i]
         for i in range(nb_iter-1):
             x_i = model(x_i)

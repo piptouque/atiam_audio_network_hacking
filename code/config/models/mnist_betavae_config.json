@@ -36,8 +36,8 @@
                 "type": "BetaScheduler",
                 "kwargs": {
                     "step_size": 1,
-                    "gamma": 0.85,
-                    "init_val": 50000,
+                    "gamma": 2000,
+                    "init_val": 0,
                     "bounds": [
                         0,
                         50000
@@ -131,6 +131,15 @@
         "clusters_latent": {
             "plot": true,
             "nb_points": 5000
+        },
+        "exploration_latent": {
+            "plot": true,
+            "nb_samples": 8,
+            "nb_iter": 10
+        },
+        "destroy_output": {
+            "plot": true,
+            "corruption_rate": 0.5
         }
     }
 }
