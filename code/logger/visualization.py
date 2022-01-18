@@ -52,16 +52,16 @@ class VaeVisualizer(UnsupervisedVisualizer):
     Args:
         UnsupervisedVisualizer ([type]): [description]
     """
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def set_up(self, log_dir: str, cfg: dict) -> bool:
+        succeeded = super(VaeVisualizer, self).set_up(log_dir, cfg)
+        data_dir = self._cfg['data_loader']['args']['data_dir']
         self.batch_size = 8
-        self.symbols_loader = BinaryFashionMnistDataLoader("./", self.batch_size, training=False)
-
+        self.symbols_loader = BinaryFashionMnistDataLoader(data_dir, self.batch_size, training=False)
+        return succeeded
 
     def log_batch_train(self, model: Vae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
         super().log_batch_train(model, epoch, batch_idx, data, output, label, loss)
-        s_cfg = self.vis_cfg['sampled_latent']
+        s_cfg = self._vis_cfg['sampled_latent']
         if s_cfg['plot']:
             assert model.latent_size == 2, "NOoooooooO"
             nb_points = s_cfg['nb_points']
@@ -75,7 +75,7 @@ class VaeVisualizer(UnsupervisedVisualizer):
         super().log_epoch_train(model, epoch, data_loader)
         clean_weights = copy.deepcopy(model.state_dict())
         print(clean_weights.shape)
-        c_cfg = self.vis_cfg['clusters_latent']
+        c_cfg = self._vis_cfg['clusters_latent']
         if c_cfg['plot']:
             assert model.latent_size == 2, "NOoooooooO"
             nb_points = c_cfg['nb_points']

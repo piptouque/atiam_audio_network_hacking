@@ -26,7 +26,7 @@ class BaseTrainer:
         self.monitor = cfg_trainer.get('monitor', 'off')
 
         self.visualizer = visualizer
-        succeeded = self.visualizer.set_up(config.log_dir, config['visualization'])
+        succeeded = self.visualizer.set_up(config.log_dir, config)
 
         if not succeeded:
             message = "Warning: visualization (Tensorboard) is configured to use, but currently not installed on " \

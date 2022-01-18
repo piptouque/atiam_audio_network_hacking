@@ -11,11 +11,13 @@ class BaseVisualizer:
     def __init__(self) -> None:
         # setup visualization writer instance                
         self.writer = TensorboardWriter()
-        self.vis_cfg = None
+        self._vis_cfg = None
+        self._cfg = None
 
-    def set_up(self, log_dir: str, vis_cfg: dict) -> bool:
-        self.vis_cfg = vis_cfg
-        succeeded = self.writer.set_up(log_dir, self.vis_cfg['tensorboard'])
+    def set_up(self, log_dir: str, cfg: dict) -> bool:
+        self._cfg = cfg
+        self._vis_cfg = self._cfg['visualization']
+        succeeded = self.writer.set_up(log_dir, self._vis_cfg['tensorboard'])
         return succeeded
 
     @abc.abstractmethod
