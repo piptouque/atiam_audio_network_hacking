@@ -43,12 +43,11 @@ class GaussianRandomSampler(RandomSampler):
             nn.Linear(self._input_size, self._input_size),
             nn.Tanh(),
         )
-        self._l_mean = nn.Linear(self._input_size, self._output_size)
-        self._fixed_var = fixed_var
-        if self._fixed_var is None:
+        self._l_mean = nn.Linear(self._input_size, self._output_size)        if self._fixed_var is None:
             self._l_logscale = nn.Linear(
                 self._input_size, self._output_size)
         else:
+            self._fixed_var = torch.tensor(fixed_var)
             self._l_logscale = None
 
     def forward(self, y: torch.Tensor) -> torch.Tensor:
