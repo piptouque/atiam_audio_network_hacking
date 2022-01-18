@@ -57,11 +57,13 @@ class VaeVisualizer(UnsupervisedVisualizer):
     Args:
         UnsupervisedVisualizer ([type]): [description]
     """
+
     def set_up(self, log_dir: str, cfg: dict) -> bool:
         succeeded = super(VaeVisualizer, self).set_up(log_dir, cfg)
-        data_dir = cfg['data_loader']['args']['data_dir']
-        self.batch_size = 8
-        self.symbols_loader = FashionMnistDataLoader(data_dir, self.batch_size, training=False)
+        data_dir = cfg['data_loader']['kwargs']['data_dir']
+        self._symbol_batch_size = self._vis_cfg['exploration_latent']['nb_samples']
+        self._symbols_loader = FashionMnistDataLoader(
+            data_dir, self._symbol_batch_size, training=False)
         return succeeded
 
     def log_batch_train(self, model: Vae, epoch: int, batch_idx: int, data: torch.Tensor, output: torch.Tensor, label: torch.Tensor, loss: Variable) -> None:
@@ -75,72 +77,76 @@ class VaeVisualizer(UnsupervisedVisualizer):
             self.writer.add_image('sampled_latent', torchvision.utils.make_grid(
                 x_hat.cpu(), nrow=nb_points[0], normalize=True))
 
-
     def log_epoch_train(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
         super().log_epoch_train(model, epoch, data_loader)
-        clean_weights = copy.deepcopy(model.state_dict())
-        print(clean_weights.shape)
-        c_cfg = self._vis_cfg['clusters_latent']
-        if c_cfg['plot']:
-            """
+        cluster_cfg = self._vis_cfg['clusters_latent']
+        if cluster_cfg['plot']:
             assert model.latent_size == 2, "NOoooooooO"
-            nb_points=c_cfg['nb_points']
-            fig=plt.figure()
-            fig, ax=plt.subplots()
+            nb_points = cluster_cfg['nb_points']
+            fig = plt.figure()
+            fig, ax = plt.subplots()
 
-            x, y, c=self._cluster_latent(model, data_loader, nb_points)
+            x, y, c = self._cluster_latent(model, data_loader, nb_points)
             # .. do other stuff
             # plot to ax3
-            coll=ax.scatter(x, y, c=c, cmap='tab10')
+            coll = ax.scatter(x, y, c=c, cmap='tab10')
             fig.colorbar(coll)
             self.writer.add_figure('clusters_latent', fig)
             plt.close(fig)
-            """
-        self._log_new_digits(model, epoch, data_loader)
-        self._log_new_digits_from_symbols(model, epoch, data_loader)
 
+        destroy_cfg = self._vis_cfg['destroy_output']
+        if destroy_cfg['plot']:
+            # first remember the uncorrumpted weights
+            clean_weights = copy.deepcopy(model.state_dict())
+            # corrupt them
+            self._weights_reset_rand(model, destroy_cfg['corruption_rate'])
+            # plot the output of the corrupted model
+            x_destroyed = self._explore_destroyed(model, data_loader)
+            self.writer.add_image('destroyed_output', torchvision.utils.make_grid(
+                x_destroyed.cpu(), nrow=self._symbol_batch_size, normalize=True))
+            # load back the clean weights
+            model.load_state_dict(clean_weights)
+        exploration_cfg = self._vis_cfg['exploration_latent']
+        if exploration_cfg['plot']:
+            x_noise = self._explore_noise(
+                model, exploration_cfg['nb_samples'], exploration_cfg['nb_iter'], data_loader)
+            x_symbol = self._explore_symbols(
+                model, exploration_cfg['nb_iter'], data_loader)
+            self.writer.add_image('exploration_noise', torchvision.utils.make_grid(
+                x_noise.cpu(), nrow=exploration_cfg['nb_samples'], normalize=True))
+            self.writer.add_image('exploration_symbols', torchvision.utils.make_grid(
+                x_symbol.cpu(), nrow=exploration_cfg['nb_samples'], normalize=True))
 
-    def weight_reset_rand(self, model: Vae, rate: float):
+    def _weights_reset_rand(self, model: Vae, rate: float):
         for layer in model.children():
             should_reset = np.random.binomial(1, rate)
             if hasattr(layer, 'reset_parameters') and should_reset:
                 layer.reset_parameters()
-                
 
-    #def _corrupted_model(self, model: Vae, rate: float) -> Vae:
-    #   model = model.detach()
-    #   corrupted_model = copy.deepcopy(model)
-    #   corrupted_model.weight_reset_rand(model, rate)
-    #   return corrupted_model
-
-
-    def _log_new_digits(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
+    def _explore_destroyed(self, model: Vae, data_loader: BaseDataLoader) -> torch.Tensor:
         data, _ = next(iter(data_loader))
-        nb_points = 4
-        nb_iter = 10
-        shape = (nb_points,) + data.shape[1:]
-        x_i = torch.rand(shape, dtype=data.dtype)
+        x = model(data)
+        return x
+
+    def _explore_noise(self, model: Vae, nb_samples: int, nb_iter: int, data_loader: BaseDataLoader) -> torch.Tensor:
+        data, _ = next(iter(data_loader))
+        shape = (nb_samples,) + data.shape[1:]
+        x_i = torch.rand(nb_samples, dtype=data.dtype)
         x = [x_i]
         for i in range(nb_iter-1):
             x_i = model(x_i)
             x.append(x_i)
         x = torch.cat(x, dim=0)
-        self.writer.add_image('new_digits', torchvision.utils.make_grid(
-                x.cpu(), nrow=nb_points, normalize=True))
+        return x
 
-
-    def _log_new_digits_from_symbols(self, model: Vae, epoch: int, data_loader: BaseDataLoader) -> None:
-        nb_iter = 10
-        x = []
-        x_j, _ = next(iter(self.symbols_loader))
-        x.append(x_j)
+    def _explore_symbols(self, model: Vae, nb_iter: int, data_loader: BaseDataLoader) -> torch.Tensor:
+        x_j, _ = next(iter(self._symbols_loader))
+        x = [x_j]
         for j in range(nb_iter-1):
             x_j = model(x_j)
             x.append(x_j)
         x = torch.cat(x, dim=0)
-        self.writer.add_image('new_digits_from_symbols', torchvision.utils.make_grid(
-                        x.cpu(), nrow=self.batch_size, normalize=True))
-
+        return x
 
     def _sample_latent(self, model: Vae, lims: Tuple[Tuple[int, int], Tuple[int, int]], nb_points: Tuple[int, int]) -> torch.Tensor:
         """Get a tensor of images
@@ -163,7 +169,6 @@ class VaeVisualizer(UnsupervisedVisualizer):
             z = torch.flatten(z, start_dim=0, end_dim=-2)
             x_hat = model.decoder(z)
             return x_hat
-
 
     def _cluster_latent(self, model: Vae, data_loader: BaseDataLoader, nb_points: int) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         x = []

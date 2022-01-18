@@ -36,6 +36,7 @@ class BinaryMnistDataLoader(BaseDataLoader):
             self.data_dir, train=training, download=True, transform=trsfm)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
 
+
 class FashionMnistDataLoader(BaseDataLoader):
     def __init__(self, data_dir: str, batch_size: int, shuffle=True, validation_split=0.0, num_workers=1, training=True) -> None:
         self.data_dir = data_dir
@@ -45,6 +46,7 @@ class FashionMnistDataLoader(BaseDataLoader):
         self.dataset = vis.datasets.FashionMNIST(
             self.data_dir, train=training, download=True, transform=trsfm)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+
 
 def audio_collate_fn(data: List[Tuple[Any]]) -> Tuple[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
     """Packs audio data and sample rate in a tuple.

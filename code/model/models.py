@@ -54,7 +54,9 @@ class GaussianRandomSampler(RandomSampler):
             nn.Linear(self._input_size, self._input_size),
             nn.Tanh(),
         )
-        self._l_mean = nn.Linear(self._input_size, self._output_size)        if self._fixed_var is None:
+        self._l_mean = nn.Linear(self._input_size, self._output_size)
+        if fixed_var is None:
+            self._fixed_var = None
             self._l_logscale = nn.Linear(
                 self._input_size, self._output_size)
         else:
@@ -70,7 +72,7 @@ class GaussianRandomSampler(RandomSampler):
 
     def _l_moments(self, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         y_h = self._l_1(y)
-        scale = torch.tensor(self._fixed_var) if self._fixed_var is not None else torch.exp(
+        scale = self._fixed_var if self._fixed_var is not None else torch.exp(
             self._l_logscale(y_h))
         return self._l_mean(y_h), scale
 
