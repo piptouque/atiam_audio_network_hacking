@@ -1,0 +1,196 @@
+
+@article{bengioGeneralizedDenoisingAutoEncoders2013,
+  title = {Generalized {{Denoising Auto-Encoders}} as {{Generative Models}}},
+  author = {Bengio, Yoshua and Yao, Li and Alain, Guillaume and Vincent, Pascal},
+  year = {2013},
+  month = nov,
+  journal = {arXiv:1305.6663 [cs]},
+  eprint = {1305.6663},
+  eprinttype = {arxiv},
+  primaryclass = {cs},
+  abstract = {Recent work has shown how denoising and contractive autoencoders implicitly capture the structure of the data-generating density, in the case where the corruption noise is Gaussian, the reconstruction error is the squared error, and the data is continuous-valued. This has led to various proposals for sampling from this implicitly learned density function, using Langevin and Metropolis-Hastings MCMC. However, it remained unclear how to connect the training procedure of regularized auto-encoders to the implicit estimation of the underlying datagenerating distribution when the data are discrete, or using other forms of corruption process and reconstruction errors. Another issue is the mathematical justification which is only valid in the limit of small corruption noise. We propose here a different attack on the problem, which deals with all these issues: arbitrary (but noisy enough) corruption, arbitrary reconstruction loss (seen as a log-likelihood), handling both discrete and continuous-valued variables, and removing the bias due to non-infinitesimal corruption noise (or non-infinitesimal contractive penalty).},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Machine Learning},
+  file = {/home/xabbu/Zotero/storage/6I4ELUND/Bengio et al. - 2013 - Generalized Denoising Auto-Encoders as Generative .pdf}
+}
+
+@article{bleiVariationalInferenceReview2017,
+  title = {Variational {{Inference}}: {{A Review}} for {{Statisticians}}},
+  shorttitle = {Variational {{Inference}}},
+  author = {Blei, David M. and Kucukelbir, Alp and McAuliffe, Jon D.},
+  year = {2017},
+  month = apr,
+  journal = {Journal of the American Statistical Association},
+  volume = {112},
+  number = {518},
+  eprint = {1601.00670},
+  eprinttype = {arxiv},
+  pages = {859--877},
+  issn = {0162-1459, 1537-274X},
+  doi = {10.1080/01621459.2017.1285773},
+  abstract = {One of the core problems of modern statistics is to approximate difficult-to-compute probability densities. This problem is especially important in Bayesian statistics, which frames all inference about unknown quantities as a calculation involving the posterior density. In this paper, we review variational inference (VI), a method from machine learning that approximates probability densities through optimization. VI has been used in many applications and tends to be faster than classical methods, such as Markov chain Monte Carlo sampling. The idea behind VI is to first posit a family of densities and then to find the member of that family which is close to the target. Closeness is measured by Kullback-Leibler divergence. We review the ideas behind mean-field variational inference, discuss the special case of VI applied to exponential family models, present a full example with a Bayesian mixture of Gaussians, and derive a variant that uses stochastic optimization to scale up to massive data. We discuss modern research in VI and highlight important open problems. VI is powerful, but it is not yet well understood. Our hope in writing this paper is to catalyze statistical research on this class of algorithms.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Machine Learning,Statistics - Computation,Statistics - Machine Learning},
+  file = {/home/xabbu/Zotero/storage/B9FMNK7S/Blei et al. - 2017 - Variational Inference A Review for Statisticians.pdf}
+}
+
+@article{broadActiveDivergenceGenerative2021,
+  title = {Active {{Divergence}} with {{Generative Deep Learning}} -- {{A Survey}} and {{Taxonomy}}},
+  author = {Broad, Terence and Berns, Sebastian and Colton, Simon and Grierson, Mick},
+  year = {2021},
+  month = jul,
+  journal = {arXiv:2107.05599 [cs]},
+  eprint = {2107.05599},
+  eprinttype = {arxiv},
+  primaryclass = {cs},
+  abstract = {Generative deep learning systems offer powerful tools for artefact generation, given their ability to model distributions of data and generate high-fidelity results. In the context of computational creativity, however, a major shortcoming is that they are unable to explicitly diverge from the training data in creative ways and are limited to fitting the target data distribution. To address these limitations, there have been a growing number of approaches for optimising, hacking and rewriting these models in order to actively diverge from the training data. We present a taxonomy and comprehensive survey of the state of the art of active divergence techniques, highlighting the potential for computational creativity researchers to advance these methods and use deep generative models in truly creative systems.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Machine Learning},
+  file = {/home/xabbu/Zotero/storage/9SXJ4X2X/Broad et al. - 2021 - Active Divergence with Generative Deep Learning --.pdf}
+}
+
+@misc{broadAmplifyingUncanny,
+  title = {Amplifying {{The Uncanny}}},
+  author = {Broad, Terence and Fol Leymarie, Frederic and Grierson, Mick},
+  abstract = {Deep neural networks have become remarkably good at producing realistic deepfakes, images of people that (to the untrained eye) are indistinguishable from real images. Deepfakes are produced by algorithms that learn to distinguish between real and fake images and are optimised to generate samples that the system deems realistic. This paper, and the resulting series of artworks Being Foiled explore the aesthetic outcome of inverting this process, instead optimising the system to generate images that it predicts as being fake. This maximises the unlikelihood of the data and in turn, amplifies the uncanny nature of these machine hallucinations.},
+  howpublished = {https://arxiv.org/pdf/2002.06890.pdf},
+  file = {/home/xabbu/Zotero/storage/HHFLNF7U/2002.06890.pdf}
+}
+
+@article{burgessUnderstandingDisentanglingBetaVAE2018,
+  title = {Understanding Disentangling in Beta-{{VAE}}},
+  author = {Burgess, Christopher P. and Higgins, Irina and Pal, Arka and Matthey, Loic and Watters, Nick and Desjardins, Guillaume and Lerchner, Alexander},
+  year = {2018},
+  month = apr,
+  journal = {arXiv:1804.03599 [cs, stat]},
+  eprint = {1804.03599},
+  eprinttype = {arxiv},
+  primaryclass = {cs, stat},
+  abstract = {We present new intuitions and theoretical assessments of the emergence of disentangled representation in variational autoencoders. Taking a rate-distortion theory perspective, we show the circumstances under which representations aligned with the underlying generative factors of variation of data emerge when optimising the modified ELBO bound in {$\beta$}-VAE, as training progresses. From these insights, we propose a modification to the training regime of {$\beta$}-VAE, that progressively increases the information capacity of the latent code during training. This modification facilitates the robust learning of disentangled representations in {$\beta$}-VAE, without the previous trade-off in reconstruction accuracy.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Artificial Intelligence,Computer Science - Machine Learning,Statistics - Machine Learning},
+  file = {/home/xabbu/Zotero/storage/4I276W5E/Burgess et al. - 2018 - Understanding disentangling in $beta$-VAE.pdf}
+}
+
+@article{elgammalCANCreativeAdversarial2017,
+  title = {{{CAN}}: {{Creative Adversarial Networks}}, {{Generating}} "{{Art}}" by {{Learning About Styles}} and {{Deviating}} from {{Style Norms}}},
+  shorttitle = {{{CAN}}},
+  author = {Elgammal, Ahmed and Liu, Bingchen and Elhoseiny, Mohamed and Mazzone, Marian},
+  year = {2017},
+  month = jun,
+  journal = {arXiv:1706.07068 [cs]},
+  eprint = {1706.07068},
+  eprinttype = {arxiv},
+  primaryclass = {cs},
+  abstract = {We propose a new system for generating art. The system generates art by looking at art and learning about style; and becomes creative by increasing the arousal potential of the generated art by deviating from the learned styles. We build over Generative Adversarial Networks (GAN), which have shown the ability to learn to generate novel images simulating a given distribution. We argue that such networks are limited in their ability to generate creative products in their original design. We propose modifications to its objective to make it capable of generating creative art by maximizing deviation from established styles and minimizing deviation from art distribution. We conducted experiments to compare the response of human subjects to the generated art with their response to art created by artists. The results show that human subjects could not distinguish art generated by the proposed system from art generated by contemporary artists and shown in top art fairs.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Artificial Intelligence},
+  file = {/home/xabbu/Zotero/storage/M9WE4UQX/Elgammal et al. - 2017 - CAN Creative Adversarial Networks, Generating Ar.pdf}
+}
+
+@misc{esling10VariationalAE2021,
+  title = {10 - {{Variational AE}} and {{Flows}}},
+  author = {Esling, Philippe},
+  year = {2021},
+  file = {/home/xabbu/Zotero/storage/AESWF9QC/10_variational_ae_flows.pdf}
+}
+
+@article{goodfellowGenerativeAdversarialNetworks2020,
+  title = {Generative Adversarial Networks},
+  author = {Goodfellow, Ian and {Pouget-Abadie}, Jean and Mirza, Mehdi and Xu, Bing and {Warde-Farley}, David and Ozair, Sherjil and Courville, Aaron and Bengio, Yoshua},
+  year = {2020},
+  month = oct,
+  journal = {Communications of the ACM},
+  volume = {63},
+  number = {11},
+  pages = {139--144},
+  issn = {0001-0782, 1557-7317},
+  doi = {10.1145/3422622},
+  abstract = {Generative adversarial networks are a kind of artificial intelligence algorithm designed to solve the generative modeling problem. The goal of a generative model is to study a collection of training examples and learn the probability distribution that generated them. Generative Adversarial Networks (GANs) are then able to generate more examples from the estimated probability distribution. Generative models based on deep learning are common, but GANs are among the most successful generative models (especially in terms of their ability to generate realistic highresolution images). GANs have been successfully applied to a wide variety of tasks (mostly in research settings) but continue to present unique challenges and research opportunities because they are based on game theory while most other approaches to generative modeling are based on optimization.},
+  langid = {english},
+  file = {/home/xabbu/Zotero/storage/CHVC4RNW/Goodfellow et al. - 2020 - Generative adversarial networks.pdf}
+}
+
+@article{higginsBetaVAELearningBasic2017,
+  title = {Beta-{{VAE}}:  {{Learning}} Basic Visual Concepts with a Contrained Variational Framework},
+  author = {Higgins, Irina and Matthey, Loic and Pal, Arka and Burgess, Christopher and Glorot, Xavier and Botvinick, Matthew and Mohamed, Shakir and Lerchner, Alexander},
+  year = {2017},
+  journal = {ICLR 2017},
+  pages = {22},
+  abstract = {Learning an interpretable factorised representation of the independent data generative factors of the world without supervision is an important precursor for the development of artificial intelligence that is able to learn and reason in the same way that humans do. We introduce {$\beta$}-VAE, a new state-of-the-art framework for automated discovery of interpretable factorised latent representations from raw image data in a completely unsupervised manner. Our approach is a modification of the variational autoencoder (VAE) framework. We introduce an adjustable hyperparameter {$\beta$} that balances latent channel capacity and independence constraints with reconstruction accuracy. We demonstrate that {$\beta$}-VAE with appropriately tuned {$\beta$} {$>$} 1 qualitatively outperforms VAE ({$\beta$} = 1), as well as state of the art unsupervised (InfoGAN) and semi-supervised (DC-IGN) approaches to disentangled factor learning on a variety of datasets (celebA, faces and chairs). Furthermore, we devise a protocol to quantitatively compare the degree of disentanglement learnt by different models, and show that our approach also significantly outperforms all baselines quantitatively. Unlike InfoGAN, {$\beta$}-VAE is stable to train, makes few assumptions about the data and relies on tuning a single hyperparameter {$\beta$}, which can be directly optimised through a hyperparameter search using weakly labelled data or through heuristic visual inspection for purely unsupervised data.},
+  langid = {english},
+  file = {/home/xabbu/Zotero/storage/FL9AYEAQ/Higgins et al. - 2017 - β-VAE LEARNING BASIC VISUAL CONCEPTS WITH A CONST.pdf}
+}
+
+@article{kazakciDigitsThatAre2017,
+  title = {Digits That Are Not: {{Generating}} New Types through Deep Neural Nets},
+  author = {Kazak{\c c}{\i}, Ak{\i}n and Mehdi, Cherti and K{\'e}gl, Bal{\'a}zs},
+  year = {2017},
+  journal = {International Conference on Computational Creativity},
+  pages = {9},
+  abstract = {For an artificial creative agent, an essential driver of the search for novelty is a value function which is often provided by the system designer or users. We argue that an important barrier for progress in creativity research is the inability of these systems to develop their own notion of value for novelty. We propose a notion of knowledge-driven creativity that circumvent the need for an externally imposed value function, allowing the system to explore based on what it has learned from a set of referential objects. The concept is illustrated by a specific knowledge model provided by a deep generative autoencoder. Using the described system, we train a knowledge model on a set of digit images and we use the same model to build coherent sets of new digits that do not belong to known digit types.},
+  langid = {english},
+  file = {/home/xabbu/Zotero/storage/R27NYLFP/Kazakçı et al. - Digits that are not Generating new types through .pdf}
+}
+
+@article{keglSpuriousSamplesDeep2018,
+  title = {Spurious Samples in Deep Generative Models: Bug or Feature?},
+  shorttitle = {Spurious Samples in Deep Generative Models},
+  author = {K{\'e}gl, Bal{\'a}zs and Cherti, Mehdi and Kazak{\c c}{\i}, Ak{\i}n},
+  year = {2018},
+  month = oct,
+  journal = {arXiv:1810.01876 [cs, stat]},
+  eprint = {1810.01876},
+  eprinttype = {arxiv},
+  primaryclass = {cs, stat},
+  abstract = {Traditional wisdom in generative modeling literature is that spurious samples that a model can generate are errors and they should be avoided. Recent research, however, has shown interest in studying or even exploiting such samples instead of eliminating them. In this paper, we ask the question whether such samples can be eliminated all together without sacrificing coverage of the generating distribution. For the class of models we consider, we experimentally demonstrate that this is not possible without losing the ability to model some of the test samples. While our results need to be confirmed on a broader set of model families, these initial findings provide partial evidence that spurious samples share structural properties with the learned dataset, which, in turn, suggests they are not simply errors but a feature of deep generative nets.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Machine Learning,Statistics - Machine Learning},
+  file = {/home/xabbu/Zotero/storage/YDDDPD5C/Kégl et al. - 2018 - Spurious samples in deep generative models bug or.pdf}
+}
+
+@article{kingmaAutoEncodingVariationalBayes2014a,
+  title = {Auto-{{Encoding Variational Bayes}}},
+  author = {Kingma, Diederik P. and Welling, Max},
+  year = {2014},
+  month = may,
+  journal = {arXiv:1312.6114 [cs, stat]},
+  eprint = {1312.6114},
+  eprinttype = {arxiv},
+  primaryclass = {cs, stat},
+  abstract = {How can we perform efficient inference and learning in directed probabilistic models, in the presence of continuous latent variables with intractable posterior distributions, and large datasets? We introduce a stochastic variational inference and learning algorithm that scales to large datasets and, under some mild differentiability conditions, even works in the intractable case. Our contributions is two-fold. First, we show that a reparameterization of the variational lower bound yields a lower bound estimator that can be straightforwardly optimized using standard stochastic gradient methods. Second, we show that for i.i.d. datasets with continuous latent variables per datapoint, posterior inference can be made especially efficient by fitting an approximate inference model (also called a recognition model) to the intractable posterior using the proposed lower bound estimator. Theoretical advantages are reflected in experimental results.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Machine Learning,Statistics - Machine Learning},
+  file = {/home/xabbu/Zotero/storage/IEMWRWW2/Kingma et Welling - 2014 - Auto-Encoding Variational Bayes.pdf}
+}
+
+@misc{Sujet,
+  title = {Sujet},
+  file = {/home/xabbu/Zotero/storage/WLTDC7W8/Blei et al. - 2017 - Variational Inference A Review for Statisticians.pdf}
+}
+
+@article{yangTorchAudioBuildingBlocks2021a,
+  title = {{{TorchAudio}}: {{Building Blocks}} for {{Audio}} and {{Speech Processing}}},
+  shorttitle = {{{TorchAudio}}},
+  author = {Yang, Yao-Yuan and Hira, Moto and Ni, Zhaoheng and Chourdia, Anjali and Astafurov, Artyom and Chen, Caroline and Yeh, Ching-Feng and Puhrsch, Christian and Pollack, David and Genzel, Dmitriy and Greenberg, Donny and Yang, Edward Z. and Lian, Jason and Mahadeokar, Jay and Hwang, Jeff and Chen, Ji and Goldsborough, Peter and Roy, Prabhat and Narenthiran, Sean and Watanabe, Shinji and Chintala, Soumith and {Quenneville-B{\'e}lair}, Vincent and Shi, Yangyang},
+  year = {2021},
+  month = oct,
+  journal = {arXiv:2110.15018 [cs, eess]},
+  eprint = {2110.15018},
+  eprinttype = {arxiv},
+  primaryclass = {cs, eess},
+  abstract = {This document describes version 0.10 of torchaudio: building blocks for machine learning applications in the audio and speech processing domain. The objective of torchaudio is to accelerate the development and deployment of machine learning applications for researchers and engineers by providing off-the-shelf building blocks. The building blocks are designed to be GPU-compatible, automatically differentiable, and production-ready. torchaudio can be easily installed from Python Package Index repository and the source code is publicly available under a BSD-2-Clause License (as of September 2021) at https://github.com/pytorch/ audio. In this document, we provide an overview of the design principles, functionalities, and benchmarks of torchaudio. We also benchmark our implementation of several audio and speech operations and models. We verify through the benchmarks that our implementations of various operations and models are valid and perform similarly to other publicly available implementations.},
+  archiveprefix = {arXiv},
+  langid = {english},
+  keywords = {Computer Science - Sound,Electrical Engineering and Systems Science - Audio and Speech Processing},
+  file = {/home/xabbu/Zotero/storage/KFYN3XTV/Yang et al. - 2021 - TorchAudio Building Blocks for Audio and Speech P.pdf}
+}
+
+
