@@ -7,8 +7,6 @@
 
 ### Models
 
-[Link](https://www.dropbox.com/sh/vmampx0zyz7hxw7/AABQ9FFVGdM2SEdg1PIVMBoRa?dl=0) to pre-trained models and logs.
-
 
 1) Image VAE
 
@@ -108,10 +106,13 @@ b) From the command line:
 - Refer to the [Models](###Models) section for information
 on configuration and checkpoint files for each model type.
 
-## Dataset
+## Data set
 
-
-__to do__
+All data sets are automatically downloaded if not found in toy/.
+For images:
+- MNIST
+For audio:
+- VSO2
 
 
 ## References

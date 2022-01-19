@@ -1,6 +1,6 @@
 {
     "version": 5,
-    "name": "Mnist_Classifier",
+    "name": "Mnist_Adversarial",
     "n_gpu": 1,
     "arch": {
         "handle": "obj",
