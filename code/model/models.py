@@ -44,7 +44,6 @@ class RandomSampler(BaseModel):
 
 class GaussianRandomSampler(RandomSampler):
     r"""
-    Actually only works with a Gaussian distribution
     see:   Kingma, Diederik P., et Max Welling. « Auto-Encoding Variational Bayes ». ArXiv:1312.6114 [Cs, Stat], 1 mai 2014. http://arxiv.org/abs/1312.6114.
     """
 
@@ -97,7 +96,8 @@ class GaussianRandomSampler(RandomSampler):
 class BernoulliRandomSampler(RandomSampler):
     r"""
     The prior and posterior are still gaussian.
-    Used as a decoder when the input data (and so, output data) is binary.
+    Should only be used as a decoder when the input 
+    data (and so, output data) is binary.
     """
 
     def __init__(self, input_dim: Tuple[int, int, int], output_dim: Tuple[int, int, int]) -> None:
@@ -123,12 +123,14 @@ class BernoulliRandomSampler(RandomSampler):
             func.binary_cross_entropy(probs, output, reduction='none')
         return log_probs
 
-# references:
-# https://keras.io/examples/generative/vae/
-# https://avandekleut.github.io/vae/
-
 
 class VariationalEncoder(BaseModel):
+    """
+    references:
+        https://keras.io/examples/generative/vae/
+        https://avandekleut.github.io/vae/
+    """
+
     def __init__(self, input_dim: Tuple[int, int, int], latent_size: int, conv_cfg: dict, sampler_fac: Callable[[Any], RandomSampler]) -> None:
         super().__init__()
         self._l_1 = nn.Sequential(

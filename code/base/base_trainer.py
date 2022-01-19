@@ -1,13 +1,13 @@
-from typing import List, Callable
-import torch
-import torch.nn as nn
-from torch.autograd import Variable
-from abc import abstractmethod
-from numpy import inf
-from utils.writer import TensorboardWriter
-from base.base_visualizer import BaseVisualizer
 
+from typing import List, Callable
 from typing import Callable
+from base.base_visualizer import BaseVisualizer
+from utils.writer import TensorboardWriter
+from numpy import inf
+from abc import abstractmethod
+from torch.autograd import Variable
+import torch.nn as nn
+import torch
 
 LossCriterion = Callable[[torch.Tensor, torch.Tensor, nn.Module], Variable]
 
